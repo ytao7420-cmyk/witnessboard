@@ -1,0 +1,5 @@
+# Optional local simulator. Not required for the direct-mode contract tests.
+# Installed and used for the local GLSim run recorded in docs/test-reports/glsim-local.json.
+fastapi==0.165.0
+uvicorn==0.54.0
+httpx==0.28.1

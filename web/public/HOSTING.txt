@@ -1,0 +1,18 @@
+Witnessboard static build.
+
+Serve this directory as static files. There is no server process.
+
+Specimen mode is the default and is labeled as specimens.
+
+Chain mode needs a real address in the URL:
+
+/desk/?address=0xCONTRACT&chain=studionet
+
+Optional RPC override:
+
+/desk/?address=0xCONTRACT&chain=studionet&rpc=https://studio.genlayer.com/api
+
+Do not put a guessed address in NEXT_PUBLIC_CONTRACT_ADDRESS.
+An empty address stays empty. Specimens are not shown as chain state.
+
+This build does not contain a deployed contract address.

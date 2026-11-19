@@ -1,0 +1,47 @@
+# Captured 2026-11-19
+# Command: /tmp/genlayer-venv/bin/pytest tests/direct/test_milestone_witness.py -v --tb=line
+# Python: Python 3.12.3
+# genlayer-test: 0.29.2
+# Runner pin: py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6
+# Archive used by the passing run: ~/.cache/gltest-direct/genvm-universal-v0.2.16.tar.xz
+
+WARNING: File `gltest.config.yaml` not found in the current directory, using default config, create a `gltest.config.yaml` file to manage multiple networks
+INFO: Clearing artifacts directory: artifacts
+INFO: Using the following configuration:
+INFO:   RPC URL: http://127.0.0.1:4000/api
+INFO:   Selected Network: localnet
+INFO:   Available networks: ['localnet', 'studionet', 'testnet_asimov', 'testnet_bradbury']
+INFO:   Selected chain type: localnet
+INFO:   Available chains: localnet, studionet, testnet_asimov, testnet_bradbury
+INFO:   Contracts directory: contracts
+INFO:   Artifacts directory: artifacts
+INFO:   Environment: .env
+INFO:   Default wait interval: 3000 ms
+INFO:   Default wait retries: 50
+INFO:   Leader only mode: False
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0 -- /tmp/genlayer-venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /agent/repos/tmp-d894399d285fa187
+plugins: genlayer-test-0.29.2
+collecting ... collected 17 items
+
+tests/direct/test_milestone_witness.py::test_manifest_and_campaign_roundtrip PASSED [  5%]
+tests/direct/test_milestone_witness.py::test_non_organizer_cannot_add_milestone PASSED [ 11%]
+tests/direct/test_milestone_witness.py::test_rejects_control_characters_private_urls_and_short_excerpts PASSED [ 17%]
+tests/direct/test_milestone_witness.py::test_criteria_freeze_and_duplicate_evidence PASSED [ 23%]
+tests/direct/test_milestone_witness.py::test_review_requires_a_lock PASSED [ 29%]
+tests/direct/test_milestone_witness.py::test_grounded_page_can_support_without_claiming_fact PASSED [ 35%]
+tests/direct/test_milestone_witness.py::test_ungrounded_support_is_downgraded PASSED [ 41%]
+tests/direct/test_milestone_witness.py::test_paste_cannot_produce_support PASSED [ 47%]
+tests/direct/test_milestone_witness.py::test_negative_reading_and_incomplete_negative PASSED [ 52%]
+tests/direct/test_milestone_witness.py::test_low_confidence_and_mixed_criteria_stay_uncertain PASSED [ 58%]
+tests/direct/test_milestone_witness.py::test_truncated_page_does_not_count_as_grounded PASSED [ 64%]
+tests/direct/test_milestone_witness.py::test_client_error_is_recorded_not_invented PASSED [ 70%]
+tests/direct/test_milestone_witness.py::test_malformed_model_output_does_not_write_a_review PASSED [ 76%]
+tests/direct/test_milestone_witness.py::test_prompt_injection_text_is_stored_as_data PASSED [ 82%]
+tests/direct/test_milestone_witness.py::test_validator_disagrees_on_outcome_grounding_and_threshold PASSED [ 88%]
+tests/direct/test_milestone_witness.py::test_closed_campaign_stops_new_evidence_but_keeps_history PASSED [ 94%]
+tests/direct/test_milestone_witness.py::test_schema_only_leader_payload_is_not_enough PASSED [100%]
+
+============================== 17 passed in 0.37s ==============================

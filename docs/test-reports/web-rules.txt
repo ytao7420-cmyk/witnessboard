@@ -1,0 +1,48 @@
+# Captured 2026-11-19
+# Command: npm run test:rules
+# genlayer-js: 1.1.8
+
+
+> witnessboard@1.0.0 test:rules
+> node --test src/lib/rules.test.mjs
+
+TAP version 13
+# Subtest: illustrative mode cannot be treated as a chain write
+ok 1 - illustrative mode cannot be treated as a chain write
+  ---
+  duration_ms: 0.634594
+  type: 'test'
+  ...
+# Subtest: contract address must be 20 bytes of hex and is empty by default
+ok 2 - contract address must be 20 bytes of hex and is empty by default
+  ---
+  duration_ms: 0.164712
+  type: 'test'
+  ...
+# Subtest: finalized without an execution result is not success
+ok 3 - finalized without an execution result is not success
+  ---
+  duration_ms: 0.163844
+  type: 'test'
+  ...
+# Subtest: accepted plus a return is success, and an error result is not
+ok 4 - accepted plus a return is success, and an error result is not
+  ---
+  duration_ms: 0.098165
+  type: 'test'
+  ...
+# Subtest: installed genlayer-js client exposes the methods this app calls
+ok 5 - installed genlayer-js client exposes the methods this app calls
+  ---
+  duration_ms: 2.07357
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 190.427391

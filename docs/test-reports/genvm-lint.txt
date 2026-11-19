@@ -1,0 +1,10 @@
+# Captured 2026-11-19
+# Command: /tmp/genlayer-venv/bin/genvm-lint check contracts/milestone_witness.py
+# genvm-linter: 0.11.0
+
+
+✓ Lint passed (3 checks)
+✓ Validation passed
+  Contract: MilestoneWitness
+  Methods: 15 (7 view, 8 write)
+  ℹ py-genlayer: a newer runner is available (1zr6nqk597d97kg0dyxg0shhrykx5v02zjgnyrajapy4wlqvfvwh). See https://github.com/genlayerlabs/genvm/releases for changes.

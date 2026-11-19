@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: illustrative mode cannot be treated as a chain write
+ok 1 - illustrative mode cannot be treated as a chain write
+  ---
+  duration_ms: 0.621438
+  type: 'test'
+  ...
+# Subtest: contract address must be 20 bytes of hex and is empty by default
+ok 2 - contract address must be 20 bytes of hex and is empty by default
+  ---
+  duration_ms: 0.175735
+  type: 'test'
+  ...
+# Subtest: finalized without an execution result is not success
+ok 3 - finalized without an execution result is not success
+  ---
+  duration_ms: 0.175117
+  type: 'test'
+  ...
+# Subtest: accepted plus a return is success, and an error result is not
+ok 4 - accepted plus a return is success, and an error result is not
+  ---
+  duration_ms: 0.105505
+  type: 'test'
+  ...
+# Subtest: installed genlayer-js client exposes the methods this app calls
+ok 5 - installed genlayer-js client exposes the methods this app calls
+  ---
+  duration_ms: 2.184687
+  type: 'test'
+  ...
+# Subtest: readContract decodes a gen_call payload from a local RPC
+ok 6 - readContract decodes a gen_call payload from a local RPC
+  ---
+  duration_ms: 30.309092
+  type: 'test'
+  ...
+# Subtest: readContract surfaces a gen_call failure instead of inventing state
+ok 7 - readContract surfaces a gen_call failure instead of inventing state
+  ---
+  duration_ms: 7.246273
+  type: 'test'
+  ...
+# Subtest: writeContract without a wallet fails before a transaction is sent
+ok 8 - writeContract without a wallet fails before a transaction is sent
+  ---
+  duration_ms: 1.180579
+  type: 'test'
+  ...
+# Subtest: local GLSim read and empty-title failure stay on loopback
+ok 9 - local GLSim read and empty-title failure stay on loopback
+  ---
+  duration_ms: 62.394518
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 305.31984
