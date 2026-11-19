@@ -33,4 +33,4 @@ Chain mode will ask an injected wallet to sign. Specimen mode does not. The app 
 
 ## Operations
 
-No contract address in this repository is a deployment. An empty address field is intentional. Publishing the repository, deploying to a public chain, using a faucet, or submitting the portal forms are separate owner actions.
+No contract address in this repository is a deployment. An empty address field is intentional. The public repository is https://github.com/ytao7420-cmyk/witnessboard and the static site is published with GitHub Pages, not as a chain deployment. Deploying to a public chain, using a faucet, and submitting the portal forms are still separate owner actions and have not been done.

@@ -55,9 +55,9 @@ npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:43123](http://127.0.0.1:43123).
+Open [http://127.0.0.1:43123/witnessboard/](http://127.0.0.1:43123/witnessboard/).
 
-`npm run build` writes a static site to `web/out`. Host that directory as files. A real contract is passed in the URL, for example `/desk/?address=0x…&chain=studionet`. An empty address stays empty. Specimen mode never fills chain mode. See `docs/DEPLOYMENT.md`. There is no public hosting URL in this draft.
+`npm run build` writes a static site to `web/out` with `basePath` `/witnessboard`. GitHub Pages serves that directory at [https://ytao7420-cmyk.github.io/witnessboard/](https://ytao7420-cmyk.github.io/witnessboard/). A real contract is passed in the URL only after the owner deploys, for example `https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0x…&chain=studionet`. An empty address stays empty. The build refuses `NEXT_PUBLIC_CONTRACT_ADDRESS`. Specimen mode never fills chain mode. See `docs/DEPLOYMENT.md`. This public site is not a testnet deployment and no portal form has been submitted.
 
 ```bash
 cd web
@@ -98,4 +98,4 @@ Hosted Studio, Studio-dev, and Bradbury require the owner's network choice, a wa
 
 ## Contribution boundary
 
-The Intelligent Contract and the application are separate artifacts. A reviewer decides whether each can receive credit. Shipping both in one repository does not mean the same work should be counted twice. GitHub publication and a public website are still missing; see `docs/submission/EVIDENCE-CHECKLIST.md`.
+The Intelligent Contract and the application are separate artifacts. A reviewer decides whether each can receive credit. Shipping both in one repository does not mean the same work should be counted twice. The public repository is https://github.com/ytao7420-cmyk/witnessboard. The static site is built for GitHub Pages at https://ytao7420-cmyk.github.io/witnessboard/. No testnet contract is deployed and no portal form has been submitted; see `docs/submission/EVIDENCE-CHECKLIST.md`.

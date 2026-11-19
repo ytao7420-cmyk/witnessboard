@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 43123 -H 0.0.0.0",
-    "build": "next build",
+    "build": "next build && node scripts/assert-pages-export.mjs",
     "start": "next start -p 43123 -H 0.0.0.0",
     "lint": "eslint",
     "test:rules": "node --test src/lib/rules.test.mjs src/lib/sdk-rpc.test.mjs"

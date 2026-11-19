@@ -1,6 +1,6 @@
 # 部署交接
 
-日期：2026-11-19。没有代签，没有向公开网络发送交易，没有提交 Portal，没有把 Origin 镜像到 GitHub。
+日期：2026-11-19。没有代签，没有向公开网络发送交易，没有提交 Portal。公开仓库是 https://github.com/ytao7420-cmyk/witnessboard ，不是 Origin 的镜像，也不是 Vercel。
 
 ## 浏览器上传用的合约
 
@@ -41,13 +41,21 @@ Bradbury 的智能合约调用不能直接打到上面这条 Conduit 链 RPC。�
 4. Studionet 上，已安装 SDK 的共识主合约地址是 `0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575`。这是 SDK 预设，不是本项目的合约地址。
 5. 不要签无限授权，不要签向外部地址转账，不要用实币付费。测试币只从上面的水龙头领取。若节点因费用字段拒绝 `value=0`，停下来看钱包提示，不要改成转账。
 
+## GitHub Pages
+
+静态站点由仓库里的 GitHub Actions 工作流 `.github/workflows/pages.yml` 构建 `web/` 并发布到 GitHub Pages。站点前缀是 `/witnessboard`。目标地址：
+
+https://ytao7420-cmyk.github.io/witnessboard/
+
+工作流只请求 `contents: read`，部署作业另加 `pages: write` 和 `id-token: write`。它不读取密钥，并把 `NEXT_PUBLIC_CONTRACT_ADDRESS` 设为空字符串。构建脚本在这个变量非空时直接失败。
+
 静态站点接入真实地址，不把标本当成链上数据：
 
 ```text
-/desk/?address=0x你的合约&chain=studionet
+https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0x你的合约&chain=studionet
 ```
 
-可选 `&rpc=https://studio.genlayer.com/api`。地址为空时，链上模式显示空状态。
+可选 `&rpc=https://studio.genlayer.com/api`。地址为空时，链上模式显示空状态。Pages 上线不等于合约已部署。
 
 ## 本地模拟和真测试网
 

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 
 import { CampaignList } from "@/components/records";
 import { useRuntimeTarget } from "@/components/runtime";
+import { basePath } from "@/lib/base-path";
 import { illustrativeCampaigns, type CampaignView } from "@/lib/fixtures";
 import { chainFacts, loadCampaigns } from "@/lib/genlayer";
 
@@ -37,8 +38,8 @@ function DeskPage() {
         <h1 className="font-display text-3xl">{zh ? "台面" : "Desk"}</h1>
         <p className="rounded-xl border border-dashed p-4 text-sm">
           {zh
-            ? "链上模式没有合约地址，所以这里是空的。标本不会用来冒充链上状态。部署后打开 /desk/?address=0x…&chain=studionet ，或在“链上操作”粘贴地址。"
-            : "Chain mode has no contract address, so this desk is empty. Specimens are not used as chain state."}
+            ? `链上模式没有合约地址，所以这里是空的。标本不会用来冒充链上状态。所有者部署后打开 ${basePath}/desk/?address=0x…&chain=studionet ，或在“链上操作”粘贴地址。这里不预填地址。`
+            : `Chain mode has no contract address, so this desk is empty. Specimens are not used as chain state. After the owner deploys, open ${basePath}/desk/?address=0x…&chain=studionet. Nothing is prefilled.`}
         </p>
       </div>
     );
