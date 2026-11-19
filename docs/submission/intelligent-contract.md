@@ -20,7 +20,7 @@ Direct-mode tests cover the state machine, URL rejection, grounding, downgrade, 
 
 ## Evidence URLs
 
-- Contract source: this repository, `contracts/milestone_witness.py`. A public GitHub URL does not exist yet.
+- Contract source: https://github.com/ytao7420-cmyk/witnessboard/blob/main/contracts/milestone_witness.py . The same file is in this repository at `contracts/milestone_witness.py`.
 - Tests: `tests/direct/test_milestone_witness.py` and `docs/test-reports/pytest-direct.txt`.
 - Docs: `README.md`, `SECURITY.md`.
 - GenLayer references used: https://docs.genlayer.com/developers/intelligent-contracts/equivalence-principle , https://docs.genlayer.com/developers/intelligent-contracts/testing , https://docs.genlayer.com/developers/intelligent-contracts/first-contract .

@@ -1,0 +1,61 @@
+# Captured 2026-11-19 during the GitHub Pages change
+# This file is an additional report. It does not replace:
+#   docs/test-reports/pytest-direct.txt
+#   docs/test-reports/genvm-lint.txt
+#   docs/test-reports/web-rules.txt
+#   docs/test-reports/sdk-rpc.txt
+#   docs/test-reports/glsim-local.json
+#
+# No wallet was connected. No transaction was signed. No public chain was deployed.
+# NEXT_PUBLIC_CONTRACT_ADDRESS was empty for the successful build.
+# The local GLSim address 0x7466a13ff8ae365437dfb20e287e7f46897b453c is not in the export.
+
+## npm run test:rules
+# working directory: web
+# result: exit 0
+# tests 9, pass 8, fail 0, skipped 1
+# skipped: "local GLSim read and empty-title failure stay on loopback" because 127.0.0.1:4217 was not running
+
+## npm run build
+# command: next build && node scripts/assert-pages-export.mjs
+# Next.js 16.4.6
+# static routes: /, /actions, /desk, /desk/campaign, /desk/milestone, /limits, /prepare
+# assert: pages export ok: 7 routes, 182 files, base /witnessboard, address empty
+# exit 0
+
+## baked address is rejected
+# command: NEXT_PUBLIC_CONTRACT_ADDRESS=0xabababababababababababababababababababab npx next build
+# exit 1
+# error: Refusing to build: NEXT_PUBLIC_CONTRACT_ADDRESS must stay empty.
+# that address was not written into web/out
+
+## local static server
+# served web/out at http://127.0.0.1:8765/witnessboard/
+# HTTP 200:
+#   /witnessboard/
+#   /witnessboard/desk/
+#   /witnessboard/desk/campaign/
+#   /witnessboard/desk/milestone/
+#   /witnessboard/actions/
+#   /witnessboard/limits/
+#   /witnessboard/prepare/
+#   /witnessboard/favicon.ico
+# home page referenced 15 /witnessboard assets (javascript, css, woff2, favicon); all returned 200
+# HTML did not contain the local simulator address or a value="0x" + 40 hex input
+
+## headless Chrome render of that local server
+# home rendered "众筹里程碑证据台" and links:
+#   /witnessboard/desk/
+#   /witnessboard/actions/
+#   /witnessboard/limits/
+#   /witnessboard/prepare/
+# desk rendered specimen cards, including
+#   /witnessboard/desk/campaign/?id=fixture-book-corner
+# that campaign rendered "北麓社区图书角" and the sentence that the specimen has no chain address or transaction hash
+# milestone ?campaign=fixture-book-corner&id=fixture-support rendered "策略允许的正向阅读"
+# actions inputs were empty; placeholder: 部署完成后粘贴真实地址，这里不预填
+
+## not done in this run
+# public https://ytao7420-cmyk.github.io/witnessboard/ was not requested as a successful deployment
+# GitHub Pages site creation via the available GitHub API returned 403
+# no Studio wallet, faucet, testnet deploy, or portal submission

@@ -6,13 +6,15 @@ Specimen mode is the default and is labeled as specimens.
 
 Chain mode needs a real address in the URL:
 
-/desk/?address=0xCONTRACT&chain=studionet
+https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0xCONTRACT&chain=studionet
 
 Optional RPC override:
 
-/desk/?address=0xCONTRACT&chain=studionet&rpc=https://studio.genlayer.com/api
+https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0xCONTRACT&chain=studionet&rpc=https://studio.genlayer.com/api
 
 Do not put a guessed address in NEXT_PUBLIC_CONTRACT_ADDRESS.
+The production build rejects that variable when it is set.
 An empty address stays empty. Specimens are not shown as chain state.
 
 This build does not contain a deployed contract address.
+GitHub Pages hosts only this static export. It is not a testnet deployment.
