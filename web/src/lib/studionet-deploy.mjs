@@ -1,6 +1,6 @@
 /** Studionet deploy guards for genlayer-js 1.1.8. No wallet and no broadcast. */
 
-import { interpretReceipt, isContractAddress } from "./rules.mjs";
+import { genvmReturnText, interpretReceipt, isContractAddress } from "./rules.mjs";
 
 export const STUDIO_CHAIN_ID = 61999;
 export const STUDIO_CHAIN_HEX = "0xf22f";
@@ -224,7 +224,7 @@ export function normalizeStudioTransaction(tx) {
     resultName: tx.result_name ?? "",
     genvmResultCode: code,
     executionResult: execution,
-    returnText: leader.result?.payload?.readable?.replace?.(/^"|"$/g, "") ?? "",
+    returnText: genvmReturnText(leader.result),
   };
 }
 

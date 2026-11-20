@@ -308,6 +308,22 @@ try {
     `http://127.0.0.1:${port}/witnessboard/actions/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet&wallet=connected`,
     "只读核验已有 create_campaign",
   );
+  const reads = await cdp.send(
+    "Runtime.evaluate",
+    {
+      expression: `(() => {
+        const labels = [...document.querySelectorAll("button")].map((item) => item.textContent.trim());
+        for (const name of ["get_milestone", "get_evidence", "get_review", "get_milestone_view"]) {
+          if (!labels.includes(name)) return "missing-" + name;
+        }
+        return "reads-present";
+      })()`,
+      returnByValue: true,
+    },
+    verify.sessionId,
+  );
+  if (reads.result?.value !== "reads-present") throw new Error(reads.result?.value || "read buttons missing");
+
   const verifyClick = await cdp.send(
     "Runtime.evaluate",
     {
