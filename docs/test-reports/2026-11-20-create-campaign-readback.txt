@@ -1,0 +1,24 @@
+2026-11-20 Studionet create_campaign read-back
+
+Chain result, already signed once by the wallet holder. This report does not send another transaction.
+
+Transaction: 0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768
+Explorer: https://explorer-studio.genlayer.com/tx/0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768
+Contract: 0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865
+Sender / organizer: 0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9
+
+Explorer: FINALIZED, Consensus Accepted, GenVM SUCCESS, Result Code Return, return c0001.
+Public RPC eth_getTransactionByHash, read through genlayer-js 1.1.8:
+- status number 7, status_name FINALIZED, result_name MAJORITY_AGREE
+- leader execution_result SUCCESS
+- leader result decoded to {status: "return", payload.readable: "c0001"}
+
+Read-back:
+- list_campaign_ids: ["c0001"]
+- get_campaign: id c0001, title 测试记录, summary 用于验证见证台在Studionet上的创建与读回流程；不代表真实筹款或参与记录。, status open, organizer 0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9
+
+Wallet submission: value 0, gas 500000, gasPrice 1 Gwei. 0.0005 GEN is that product shown as a cap preview. It is not the amount charged. The receipt effectiveGasPrice can remain 0x0.
+
+Page bug, separate from the chain result: the page showed "7 / execution-absent" and said it was not a successful execution. genlayer-js reports FINALIZED as the number 7 and renames statusName to status_name. It also decodes the leader result from base64 into an object, so the literal string FINISHED_WITH_RETURN is absent. The parser now accepts that shape. Status 7 alone, an EVM status of 0x1 alone, execution_result ERROR, and a rollback result still do not count as success.
+
+Read-only check, no new write: /actions/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet and the button 只读核验已有 create_campaign.

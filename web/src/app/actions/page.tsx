@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useRuntimeTarget } from "@/components/runtime";
 import { chainCatalog, chainFacts, idleTx, loadCampaigns, readCampaignSummary, resumeFinalization, runWrite, type ChainKey, type TxState } from "@/lib/genlayer";
 import { RECORDED_STUDIONET_DEPLOYMENT } from "@/lib/studionet-deploy.mjs";
-import { isContractAddress, writesAllowed } from "@/lib/rules.mjs";
+import { interpretReceipt, isContractAddress, writesAllowed } from "@/lib/rules.mjs";
 
 const phases = ["simulating", "awaiting-signature", "submitted", "waiting-decision", "decided", "waiting-final", "final"] as const;
 
@@ -72,6 +72,40 @@ function ActionsPage() {
     if (!isContractAddress(writeAddress)) return;
     const campaigns = await loadCampaigns(state.chainKey, writeAddress, state.stateVariant, state.chainKey === "studionet" ? "https://studio.genlayer.com/api" : state.endpoint);
     setEvidence(JSON.stringify({ list_campaign_ids: campaigns.map((campaign) => campaign.id), campaigns }, null, 2));
+  }
+
+  async function verifyRecordedWrite() {
+    const hash = RECORDED_STUDIONET_DEPLOYMENT.createCampaignTxHash;
+    const response = await fetch("https://studio.genlayer.com/api", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getTransactionByHash", params: [hash] }),
+    });
+    const payload = await response.json();
+    if (payload.error) throw new Error(payload.error.message || "eth_getTransactionByHash failed");
+    const reading = interpretReceipt(payload.result);
+    const campaigns = isContractAddress(writeAddress)
+      ? await loadCampaigns(state.chainKey, writeAddress, state.stateVariant, "https://studio.genlayer.com/api")
+      : [];
+    const campaign = reading.returnText
+      ? await readCampaignSummary(state.chainKey, writeAddress, state.stateVariant, reading.returnText, "https://studio.genlayer.com/api")
+      : null;
+    setEvidence(JSON.stringify({
+      readOnly: true,
+      hash,
+      explorer: RECORDED_STUDIONET_DEPLOYMENT.createCampaignExplorerTx,
+      receipt: reading,
+      list_campaign_ids: campaigns.map((item) => item.id),
+      get_campaign: campaign,
+    }, null, 2));
+    setTx({
+      phase: reading.successful ? "final" : "error",
+      hash,
+      detail: reading.successful
+        ? `只读核验 ${reading.status} / ${reading.executionName} / ${reading.returnText}. 没有发送新交易。`
+        : `只读核验未达到 GenLayer return：${reading.status} / ${reading.executionName || "execution-absent"}`,
+      successful: reading.successful,
+    });
   }
 
   async function readOne() {
@@ -167,7 +201,18 @@ function ActionsPage() {
           <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress) || !fields.campaignId} onClick={() => void readOne().catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
             get_campaign
           </Button>
+          <Button type="button" variant="secondary" disabled={!isContractAddress(writeAddress)} onClick={() => void verifyRecordedWrite().catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
+            {zh ? "只读核验已有 create_campaign" : "Read-only check of the existing create_campaign"}
+          </Button>
         </div>
+        <p className="text-xs leading-5 text-muted-foreground md:col-span-2">
+          <a className="underline" href={RECORDED_STUDIONET_DEPLOYMENT.createCampaignExplorerTx}>
+            {RECORDED_STUDIONET_DEPLOYMENT.createCampaignTxHash}
+          </a>
+          {zh
+            ? "。Explorer 为 FINALIZED、Consensus Accepted、GenVM SUCCESS、Result Code Return、返回 c0001。钱包提交参数是 value 0、gas 500000、gas price 1 Gwei，乘积 0.0005 GEN 是那次上限预览，不是回执里的实际扣费。effectiveGasPrice 仍可能是 0x0。"
+            : ". Explorer shows FINALIZED, Consensus Accepted, GenVM SUCCESS, Result Code Return, and c0001. The wallet submission was value 0, gas 500000, and 1 Gwei; 0.0005 GEN is that preview, not the charged fee. effectiveGasPrice can still be 0x0."}
+        </p>
         {evidence ? <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs md:col-span-2">{evidence}</pre> : null}
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={simulate} onChange={(event) => setSimulate(event.target.checked)} />

@@ -15,6 +15,7 @@ import {
   describeError,
   intrinsicGas,
   judgeDeployObservation,
+  normalizeStudioTransaction,
   pollUntil,
   prepareDeployTransaction,
   sha256Hex,
@@ -157,6 +158,19 @@ test("receipt timeout does not ask for another signature", async () => {
 });
 
 const recordedDeploy = createRequire(import.meta.url)("./fixtures/studionet-deploy-2026-11-20.json");
+const recordedWrite = createRequire(import.meta.url)("./fixtures/studionet-create-2026-11-20.json");
+
+test("the sdk create receipt maps status 7 and a decoded return to a return", () => {
+  const normalized = normalizeStudioTransaction(recordedWrite.sdkReceipt);
+  assert.equal(normalized.statusName, "FINALIZED");
+  assert.equal(normalized.txExecutionResultName, "FINISHED_WITH_RETURN");
+  assert.equal(normalized.returnText, "c0001");
+  const onlyStatus = normalizeStudioTransaction({ status: 7, status_name: "FINALIZED" });
+  assert.equal(onlyStatus, null);
+  const failed = structuredClone(recordedWrite.sdkReceipt);
+  failed.consensus_data.leader_receipt[0].execution_result = "ERROR";
+  assert.equal(normalizeStudioTransaction(failed).txExecutionResultName, "FINISHED_WITH_ERROR");
+});
 
 test("the recorded Studionet receipt is success only from its execution fields", () => {
   const judged = judgeDeployObservation({

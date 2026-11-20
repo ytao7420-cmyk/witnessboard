@@ -305,7 +305,7 @@ export function DeployStudio({ zh }: { zh: boolean }) {
       <h2 className="font-display text-2xl">{zh ? "已记录的 Studionet 部署" : "Recorded Studionet deployment"}</h2>
       <p className="text-sm leading-6">
         {zh
-          ? "这是一次已经发生的部署，不是新的发送。Studionet 会重置，这个地址不是 Bradbury 或主网地址。只读检查过 manifest：名称 MilestoneWitness，version 1.0.0，holds_funds 为 false，当时 campaign_count 为 0。写入后再读回还没有做。"
+          ? "这是一次已经发生的部署，不是新的发送。Studionet 会重置，这个地址不是 Bradbury 或主网地址。只读检查过 manifest：名称 MilestoneWitness，version 1.0.0，holds_funds 为 false，部署当时 campaign_count 为 0。之后有一次 create_campaign，链上返回 c0001；当时页面把状态数字 7 显示成失败，那是解析错误，不是链上失败。可在操作页只读核验，不需要再发送。"
           : "This deployment already happened. It is not a new transaction. Studionet can be reset. This address is not a Bradbury or mainnet address. A read of manifest returned MilestoneWitness 1.0.0 with holds_funds false and campaign_count 0. A write followed by a read-back has not been done."}
       </p>
       <p className="break-all text-sm">
