@@ -16,7 +16,7 @@ npm run dev
 
 默认是只读标本。琥珀色横幅会说明这些记录不是链上审查。标本模式不会连接钱包。
 
-Studionet 临时部署：https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet 。这是只读入口。写入仍要你自己的钱包签名，而且还没有做写入后的读回。构建时如果设置了 `NEXT_PUBLIC_CONTRACT_ADDRESS`，构建会失败。
+Studionet 临时部署：https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet 。这是只读入口。已有一次 `create_campaign` 读回 `c0001`，操作页可以只读核验 `0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768`，不需要再签名。构建时如果设置了 `NEXT_PUBLIC_CONTRACT_ADDRESS`，构建会失败。
 
 ## 跑合约测试
 

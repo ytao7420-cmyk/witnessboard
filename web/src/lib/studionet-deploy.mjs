@@ -170,6 +170,8 @@ export const RECORDED_STUDIONET_DEPLOYMENT = {
   chainId: STUDIO_CHAIN_ID,
   rpc: "https://studio.genlayer.com/api",
   txHash: "0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544",
+  createCampaignTxHash: "0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768",
+  createCampaignExplorerTx: "https://explorer-studio.genlayer.com/tx/0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768",
   explorerTx: "https://explorer-studio.genlayer.com/tx/0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544",
   contractAddress: "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865",
   sender: "0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9",
@@ -183,6 +185,7 @@ export const RECORDED_STUDIONET_DEPLOYMENT = {
 };
 
 export function genvmResultCode(encoded) {
+  if (encoded && typeof encoded === "object" && typeof encoded.status === "string") return encoded.status;
   if (typeof encoded !== "string" || encoded.length === 0) return null;
   let raw;
   try {
@@ -202,12 +205,18 @@ export function normalizeStudioTransaction(tx) {
   const execution = leader.execution_result ?? "";
   let txExecutionResultName = "";
   if (execution === "SUCCESS" && code === "return") txExecutionResultName = "FINISHED_WITH_RETURN";
-  else if (execution || code) txExecutionResultName = "FINISHED_WITH_ERROR";
-  const status = typeof tx.statusName === "string"
-    ? tx.statusName
-    : typeof tx.status === "string" && !tx.status.startsWith("0x")
-      ? tx.status
-      : "";
+  else if ((execution && execution !== "SUCCESS") || (code && code !== "return")) txExecutionResultName = "FINISHED_WITH_ERROR";
+  const named = [tx.statusName, tx.status_name, tx.status].find((value) => typeof value === "string" && value && !value.startsWith("0x"));
+  const status = typeof named === "string" && !/^\d+$/.test(named)
+    ? named
+    : ({
+        5: "ACCEPTED",
+        7: "FINALIZED",
+        8: "CANCELED",
+        11: "READY_TO_FINALIZE",
+        12: "VALIDATORS_TIMEOUT",
+        13: "LEADER_TIMEOUT",
+      }[String(tx.status ?? named)] ?? "");
   return {
     statusName: status,
     txExecutionResultName,
@@ -215,6 +224,7 @@ export function normalizeStudioTransaction(tx) {
     resultName: tx.result_name ?? "",
     genvmResultCode: code,
     executionResult: execution,
+    returnText: leader.result?.payload?.readable?.replace?.(/^"|"$/g, "") ?? "",
   };
 }
 

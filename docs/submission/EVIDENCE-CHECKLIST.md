@@ -13,7 +13,7 @@ Status on 19 November 2026. Nothing below has been submitted to the GenLayer por
 | Usable website | No | Required | GitHub Pages target: `https://ytao7420-cmyk.github.io/witnessboard/`. Local dev: `http://127.0.0.1:43123/witnessboard/`. Not a chain deployment. |
 | GitHub repository | Helpful as a URL | Required | Public: `https://github.com/ytao7420-cmyk/witnessboard`. This is not an Origin mirror. |
 | Deployed contract address | Not required by the written brief, but useful | Useful for a live demo | Studionet, temporary: `0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865`. Not Bradbury. |
-| Transaction hash | No | Would show a live review | Studionet deploy only: `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`. No review transaction. |
+| Transaction hash | One create, no review | Would show a live review | Deploy `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`. create_campaign `0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768` returned `c0001`. No review transaction. |
 | Screenshots of chain success | No | No | Do not create them. UI screenshots, if captured, are of the local draft only. |
 | Faucet, signature, portal post | No | No | Not done. Owner must confirm before any of these. |
 

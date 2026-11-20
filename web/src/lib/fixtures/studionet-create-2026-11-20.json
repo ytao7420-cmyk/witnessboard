@@ -1,0 +1,32 @@
+{
+  "source": "genlayer-js 1.1.8 getTransaction / waitForTransactionReceipt against https://studio.genlayer.com/api",
+  "captured": "2026-11-20",
+  "note": "Trimmed. No contract code and no simulator config. Wallet submission was value 0, gas 500000, gasPrice 1 Gwei; the 0.0005 GEN figure is that product, not a separate fee charge.",
+  "sdkReceipt": {
+    "hash": "0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768",
+    "status": 7,
+    "status_name": "FINALIZED",
+    "result": 6,
+    "result_name": "MAJORITY_AGREE",
+    "value": 0,
+    "sender": "0xcd1DabF73cC80EDeE8BA664c34A5d636b6e407f9",
+    "recipient": "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865",
+    "data": {
+      "contract_address": "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865"
+    },
+    "consensus_data": {
+      "leader_receipt": [
+        {
+          "execution_result": "SUCCESS",
+          "result": {
+            "raw": "ACxjMDAwMQ==",
+            "status": "return",
+            "payload": {
+              "readable": "\"c0001\""
+            }
+          }
+        }
+      ]
+    }
+  }
+}

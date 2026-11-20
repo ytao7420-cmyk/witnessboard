@@ -63,7 +63,9 @@ https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0x你的合约&chain=
 
 那里的 `0x7466a13ff8ae365437dfb20e287e7f46897b453c` 只存在于这次本地进程，不能当作公开部署地址。交易号 `0x…0001` 起是模拟器顺序号，不是测试网交易。
 
-Studionet 已有一次部署，交易 `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`，合约 `0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865`。该网络会重置。只读 `manifest` 返回 MilestoneWitness 1.0.0，`holds_funds` 为 false，`list_campaign_ids` 当时为空。写入后再读回还没有做。Bradbury 没有部署。没有由本仓库提交 Portal。
+Studionet 已有一次部署，交易 `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`，合约 `0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865`。该网络会重置。只读 `manifest` 返回 MilestoneWitness 1.0.0，`holds_funds` 为 false。部署当时 `list_campaign_ids` 为空。
+
+之后有一次真实 `create_campaign`，交易 [`0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768`](https://explorer-studio.genlayer.com/tx/0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768)。Explorer 为 FINALIZED、Consensus Accepted、GenVM SUCCESS、Result Code Return，返回 `c0001`。`list_campaign_ids` 读回 `c0001`。`get_campaign` 读回 id `c0001`、title `测试记录`、summary `用于验证见证台在Studionet上的创建与读回流程；不代表真实筹款或参与记录。`、status `open`、organizer `0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9`。这是验证记录，不是真实筹款。钱包提交参数是 value 0、gas 500000、gas price 1 Gwei；0.0005 GEN 是这次的上限预览，不是回执扣费。页面当时显示 `7 / execution-absent`，那是解析错误：SDK 把 FINALIZED 写成数字 7，并把返回值解码成对象，页面却要求字面量 `FINISHED_WITH_RETURN`。链上执行是成功的。操作页的“只读核验已有 create_campaign”只读取这个哈希和合约，不发送新交易。Bradbury 没有部署。没有由本仓库提交 Portal。
 
 ## Studionet 与 MetaMask
 

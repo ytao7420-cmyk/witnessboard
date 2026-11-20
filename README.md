@@ -81,7 +81,7 @@ The first direct-mode run downloads the GenVM archive (about 200 MB) into `~/.ca
 
 ## Deploy, after the owner confirms
 
-One Studionet deployment is recorded in `web/src/lib/studionet-deploy.mjs`. Studionet can be reset. No write has been read back, and no Bradbury deployment exists.
+One Studionet deployment is recorded in `web/src/lib/studionet-deploy.mjs`. Studionet can be reset. One later `create_campaign` returned `c0001` and was read back; the page initially misread status `7` as a failure. The actions page can re-check that hash without sending. No Bradbury deployment exists.
 
 ```bash
 npm install -g genlayer

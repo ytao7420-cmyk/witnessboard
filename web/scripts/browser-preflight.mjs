@@ -209,7 +209,7 @@ try {
   const recorded = await openPage(cdp, `http://127.0.0.1:${port}/witnessboard/prepare/`);
   const recordedView = await waitForText(cdp, recorded.sessionId, "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865", 8000);
   if (!recordedView.text.includes("会重置")) throw new Error("missing temporary-network label");
-  if (!recordedView.text.includes("写入后再读回还没有做")) throw new Error("missing unverified write label");
+  if (!recordedView.text.includes("那是解析错误，不是链上失败")) throw new Error("missing parser-bug distinction");
   if (recordedView.calls.includes("eth_sendTransaction")) throw new Error("recorded page sent a transaction");
   await cdp.send("Target.closeTarget", { targetId: recorded.targetId });
   console.log("ok recorded-address-visible");
@@ -302,6 +302,34 @@ try {
   }
   await cdp.send("Target.closeTarget", { targetId: actions.targetId });
   console.log("ok actions-no-snap", actionView.calls.join(","));
+
+  const verify = await openPage(
+    cdp,
+    `http://127.0.0.1:${port}/witnessboard/actions/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet&wallet=connected`,
+    "只读核验已有 create_campaign",
+  );
+  const verifyClick = await cdp.send(
+    "Runtime.evaluate",
+    {
+      expression: `(() => {
+        const button = [...document.querySelectorAll("button")].find((item) => item.textContent.includes("只读核验已有 create_campaign"));
+        if (!button) return "missing-verify";
+        button.click();
+        return "clicked";
+      })()`,
+      returnByValue: true,
+    },
+    verify.sessionId,
+  );
+  if (verifyClick.result?.value !== "clicked") throw new Error(verifyClick.result?.value || "verify click failed");
+  const verified = await waitForText(cdp, verify.sessionId, "测试记录", 30000);
+  if (!verified.text.includes("FINISHED_WITH_RETURN")) throw new Error(verified.text.slice(0, 700));
+  if (!verified.text.includes("c0001")) throw new Error("missing campaign id");
+  if (verified.calls.includes("eth_sendTransaction") || verified.calls.some((call) => call.toLowerCase().includes("snap"))) {
+    throw new Error("verify sent or requested a snap: " + verified.calls.join(","));
+  }
+  await cdp.send("Target.closeTarget", { targetId: verify.targetId });
+  console.log("ok readonly-create-campaign");
 
   ws.close();
   console.log("browser preflight ok");
