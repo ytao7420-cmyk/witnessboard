@@ -78,20 +78,23 @@ const providerScript = `(() => {
   window.__walletCalls = calls;
   const account = "0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9";
   window.ethereum = {
-    async request({ method }) {
+    async request({ method, params }) {
       calls.push(method);
       if (mode === "hang-chain" && method === "eth_chainId") return new Promise(() => {});
       if (mode === "hang-accounts" && method === "eth_requestAccounts") return new Promise(() => {});
       if (method === "eth_chainId") return "0xf22f";
       if (method === "eth_accounts") return mode === "disconnected" ? [] : [account];
       if (method === "eth_requestAccounts") return [account];
-      if (method === "eth_sendTransaction") throw new Error("simulated-wallet-error");
+      if (method === "eth_sendTransaction") {
+        window.__lastTx = params?.[0] || null;
+        throw new Error("simulated-wallet-error");
+      }
       return null;
     },
   };
 })();`;
 
-async function openPage(cdp, url) {
+async function openPage(cdp, url, readyText = "请求 MetaMask 签名部署") {
   const target = await cdp.send("Target.createTarget", { url: "about:blank" });
   const session = await cdp.send("Target.attachToTarget", { targetId: target.targetId, flatten: true });
   const sessionId = session.sessionId;
@@ -104,7 +107,7 @@ async function openPage(cdp, url) {
   while (Date.now() - started < 15000) {
     const result = await cdp.send(
       "Runtime.evaluate",
-      { expression: "document.body && document.body.innerText.includes('请求 MetaMask 签名部署')", returnByValue: true },
+      { expression: `document.body && document.body.innerText.includes(${JSON.stringify(readyText)})`, returnByValue: true },
       sessionId,
     );
     if (result.result?.value) {
@@ -113,7 +116,7 @@ async function openPage(cdp, url) {
     }
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  if (!ready) throw new Error("prepare page did not hydrate");
+  if (!ready) throw new Error(`page did not show ${readyText}`);
   return { sessionId, targetId: target.targetId };
 }
 
@@ -244,6 +247,61 @@ try {
     if (value.text.includes("哈希:")) throw new Error("invented a hash");
     if (value.disabled !== false) throw new Error("button stayed disabled without a hash");
   });
+
+  const actions = await openPage(
+    cdp,
+    `http://127.0.0.1:${port}/witnessboard/actions/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet&wallet=connected`,
+    "create_campaign",
+  );
+  const typed = await cdp.send(
+    "Runtime.evaluate",
+    {
+      expression: `(() => {
+        const input = [...document.querySelectorAll("input")].find((item) => String(item.value).toLowerCase().includes("0xc4ad3bd1"));
+        if (!input) return "missing-address";
+        if (input.readOnly) return "address-readonly";
+        const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+        setValue.call(input, "0x2222222222222222222222222222222222222222");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        const title = [...document.querySelectorAll("input")].find((item) => item !== input && item.type !== "checkbox" && !item.value);
+        const areas = [...document.querySelectorAll("textarea")];
+        if (title) {
+          setValue.call(title, "sim-campaign");
+          title.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        if (areas[0]) {
+          const setArea = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+          setArea.call(areas[0], "sim-summary");
+          areas[0].dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        const button = [...document.querySelectorAll("button")].find((item) => item.textContent.trim() === "create_campaign");
+        if (!button) return "missing-create";
+        button.click();
+        return "clicked";
+      })()`,
+      returnByValue: true,
+    },
+    actions.sessionId,
+  );
+  if (typed.result?.value !== "clicked") throw new Error(typed.result?.value || "actions click failed");
+  const actionView = await waitForText(cdp, actions.sessionId, "simulated-wallet-error", 20000);
+  const txInfo = await cdp.send(
+    "Runtime.evaluate",
+    { expression: "JSON.stringify(window.__lastTx || null)", returnByValue: true },
+    actions.sessionId,
+  );
+  const lastTx = JSON.parse(txInfo.result?.value || "null");
+  if (!lastTx || lastTx.value !== "0x0" || lastTx.gasPrice !== "0x3b9aca00") {
+    throw new Error("unexpected write tx " + txInfo.result?.value);
+  }
+  if (actionView.calls.some((call) => call.includes("Snap") || call.includes("snap"))) {
+    throw new Error("snap method was called: " + actionView.calls.join(","));
+  }
+  if (actionView.calls.filter((call) => call === "eth_sendTransaction").length !== 1) {
+    throw new Error("write send count " + actionView.calls.join(","));
+  }
+  await cdp.send("Target.closeTarget", { targetId: actions.targetId });
+  console.log("ok actions-no-snap", actionView.calls.join(","));
 
   ws.close();
   console.log("browser preflight ok");

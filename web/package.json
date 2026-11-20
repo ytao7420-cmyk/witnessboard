@@ -7,7 +7,7 @@
     "build": "node scripts/sync-contract.mjs && next build && node scripts/assert-pages-export.mjs",
     "start": "next start -p 43123 -H 0.0.0.0",
     "lint": "eslint",
-    "test:rules": "node --test src/lib/rules.test.mjs src/lib/sdk-rpc.test.mjs src/lib/studionet-deploy.test.mjs"
+    "test:rules": "node --test src/lib/rules.test.mjs src/lib/sdk-rpc.test.mjs src/lib/studionet-deploy.test.mjs src/lib/write-wallet.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
