@@ -63,4 +63,10 @@ https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0x你的合约&chain=
 
 那里的 `0x7466a13ff8ae365437dfb20e287e7f46897b453c` 只存在于这次本地进程，不能当作公开部署地址。交易号 `0x…0001` 起是模拟器顺序号，不是测试网交易。
 
-真测试网和 Studio 都还没有部署。
+真测试网和 Studio 都还没有部署。没有部署哈希，没有 Portal 提交。
+
+## Studionet 与 MetaMask
+
+2026-11-20 的只读观察：Studio 能返回 schema，stderr/stdout 为空，并有一条 warning：runner comment does not start with version, using default。浏览器控制台没有部署异常正文。MetaMask Activity 没有 pending、failed 或 rejected。账户仍是 10 GEN。因此这条 warning 不能当成没有哈希的原因。
+
+同一天用 genlayer-js 1.1.8 对 `https://studio.genlayer.com/api` 组过一次部署交易，并在进入钱包前截获，没有广播。截获结果是 value `0x0`、gas `0x7a120`（500000）、gasPrice `0x0`、chain id `0xf22f`、接收方 `0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575`。这笔 calldata 的 EIP-2028 固有 gas 高于 500000。节点没有 `sim_getFeeConfig`。页面 `web` 的“部署准备”只在 gas 低于固有 gas 时提高上限，不写 fee profile，并把钱包或节点返回的原文显示出来。本地测试通过不等于已经部署。

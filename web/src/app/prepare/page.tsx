@@ -1,5 +1,6 @@
 "use client";
 
+import { DeployStudio } from "@/components/deploy-studio";
 import { useSession } from "@/components/session";
 
 export default function PreparePage() {
@@ -47,6 +48,7 @@ export default function PreparePage() {
         <li>{zh ? "把部署回执里的地址粘到“链上操作”。不要把别人的地址当成自己的部署。" : "Paste the address from your own deploy receipt into Chain actions."}</li>
         <li>{zh ? "在本地 Studio 上测量费用后，再决定是否生成 fee-profile.json。当前前端不使用未测量的费用配置。" : "Measure fees on local Studio before creating fee-profile.json. The frontend does not use an unmeasured profile."}</li>
       </ol>
+      <DeployStudio zh={zh} />
       <p className="text-sm text-muted-foreground">
         {zh
           ? "genvm-lint 0.11.0 提示还有更新的 runner 1zr6nqk597d97kg0dyxg0shhrykx5v02zjgnyrajapy4wlqvfvwh。genlayer-test 0.29.2 的直接模式无法给那个 runner 注入交易消息。当前合约使用文档仍在展示、且本机测试已通过的 1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6。换 runner 之前需要重新跑测试。"

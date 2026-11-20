@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,6 +74,12 @@ for (const href of stylesheet) {
   for (const match of css.matchAll(/url\((?:'|")?(\/witnessboard\/[^)'"]+)/g)) {
     assertAsset("home.css", match[1]);
   }
+}
+
+const contractFile = join(outDir, "MilestoneWitness.py");
+const contractHash = createHash("sha256").update(readFileSync(contractFile)).digest("hex");
+if (contractHash !== "6cc5e74eba8c843870b7e6300b89b946678d747220f40e4caffe0557dd3a7aa9") {
+  throw new Error(`MilestoneWitness.py hash ${contractHash} does not match deploy/SHA256SUMS`);
 }
 
 console.log(`pages export ok: ${pages.length} routes, ${built.length} files, base ${basePath}, address empty`);
