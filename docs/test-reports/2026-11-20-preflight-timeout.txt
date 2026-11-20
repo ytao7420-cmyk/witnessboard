@@ -1,0 +1,32 @@
+# Captured 2026-11-20
+# Additional report. It does not replace earlier reports and it is not an on-chain deployment.
+# No private key, session, or portal submission was used.
+
+## Observed on the published page
+# One click of "请求 MetaMask 签名部署" stayed on status checking for more than 75 seconds.
+# MetaMask showed no connect prompt and no signature prompt.
+# MetaMask Activity had no pending, failed, or rejected item.
+# No transaction hash was returned and the page showed no error text.
+# That click is not replayed by this change.
+
+## Code path that produced the unlabeled wait
+# The published component set status to checking and then awaited, without a timeout:
+# eth_chainId, eth_requestAccounts, fetch of MilestoneWitness.py, sha256, import("genlayer-js").
+# The status changed only after those calls. A call that never settles left the button disabled.
+
+## Unit tests
+# node --test src/lib/rules.test.mjs src/lib/sdk-rpc.test.mjs src/lib/studionet-deploy.test.mjs
+# 21 tests, 20 passed, 0 failed, 1 skipped (local GLSim is not running).
+# A hanging promise given to withTimeout rejects with step eth_chainId, code step-timeout,
+# and the message says no transaction was sent. A late resolve is ignored.
+
+## Browser simulation, headless Chrome, injected window.ethereum, local static prepare page
+# Command: node web/scripts/browser-preflight.mjs
+# hang-chain: only eth_chainId was called. The page left the wait, showed
+# "timed out ... waiting for eth_chainId" and "No transaction was sent", and the button was enabled.
+# hang-accounts: eth_chainId then eth_requestAccounts. Timeout named eth_requestAccounts. No send.
+# disconnected: eth_requestAccounts was called, then one eth_sendTransaction.
+# The page showed simulated-wallet-error and did not display a transaction hash.
+# already-connected on chain 0xf22f: one eth_sendTransaction, the simulated error was shown,
+# the button was enabled, and no hash was invented.
+# browser preflight ok
