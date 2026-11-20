@@ -90,6 +90,7 @@ export function isUserRejection(error) {
 
 export function describeError(error) {
   const parts = [];
+  if (error?.step) parts.push(`step ${error.step}`);
   if (error?.code != null) parts.push(`code ${error.code}`);
   for (const value of [error?.shortMessage, error?.message, error?.details, error?.data?.message, error?.cause?.message]) {
     if (typeof value === "string" && value.trim()) parts.push(value.trim());
@@ -97,9 +98,38 @@ export function describeError(error) {
   const detail = [...new Set(parts)].join("\n");
   return {
     code: error?.code ?? null,
+    step: error?.step ?? null,
     message: String(error?.shortMessage || error?.message || error || "unknown error"),
     detail: detail || "unknown error",
   };
+}
+
+export function withTimeout(work, { ms, step, setTimer = setTimeout, clearTimer = clearTimeout }) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimer(() => {
+      if (settled) return;
+      settled = true;
+      const error = new Error(`timed out after ${ms}ms waiting for ${step}. No transaction was sent.`);
+      error.code = "step-timeout";
+      error.step = step;
+      reject(error);
+    }, ms);
+    Promise.resolve()
+      .then(work)
+      .then((value) => {
+        if (settled) return;
+        settled = true;
+        clearTimer(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        if (settled) return;
+        settled = true;
+        clearTimer(timer);
+        reject(error);
+      });
+  });
 }
 
 export function createGuardedProvider(ethereum, state) {
@@ -119,6 +149,7 @@ export function createGuardedProvider(ethereum, state) {
         gas: prepared.transaction.gas,
         value: prepared.transaction.value,
       };
+      state.onSend?.();
       const hash = await ethereum.request({
         method: "eth_sendTransaction",
         params: [prepared.transaction],

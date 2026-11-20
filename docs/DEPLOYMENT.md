@@ -70,3 +70,5 @@ https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0x你的合约&chain=
 2026-11-20 的只读观察：Studio 能返回 schema，stderr/stdout 为空，并有一条 warning：runner comment does not start with version, using default。浏览器控制台没有部署异常正文。MetaMask Activity 没有 pending、failed 或 rejected。账户仍是 10 GEN。因此这条 warning 不能当成没有哈希的原因。
 
 同一天用 genlayer-js 1.1.8 对 `https://studio.genlayer.com/api` 组过一次部署交易，并在进入钱包前截获，没有广播。截获结果是 value `0x0`、gas `0x7a120`（500000）、gasPrice `0x0`、chain id `0xf22f`、接收方 `0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575`。这笔 calldata 的 EIP-2028 固有 gas 高于 500000。节点没有 `sim_getFeeConfig`。页面 `web` 的“部署准备”只在 gas 低于固有 gas 时提高上限，不写 fee profile，并把钱包或节点返回的原文显示出来。本地测试通过不等于已经部署。
+
+父级在已发布的准备页点过一次“请求 MetaMask 签名部署”。状态停在 `checking` 超过 75 秒，没有 MetaMask 连接或签名提示，没有哈希，也没有错误正文。那一版把 `eth_chainId`、`eth_requestAccounts`、合约下载和 SDK 加载都放在同一个没有超时的 `checking` 里。后续页面会在每一步写下方法名，并在超时后恢复按钮、显示该步原文。没有哈希时不会补发交易。

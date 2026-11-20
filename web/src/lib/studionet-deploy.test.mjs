@@ -17,6 +17,7 @@ import {
   pollUntil,
   prepareDeployTransaction,
   sha256Hex,
+  withTimeout,
 } from "./studionet-deploy.mjs";
 
 const ACCOUNT = "0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9";
@@ -36,6 +37,35 @@ function baseTx(overrides = {}) {
     ...overrides,
   };
 }
+
+test("a hanging wallet request times out with the step name and ignores a late result", async () => {
+  const timers = [];
+  let late = null;
+  const pending = withTimeout(
+    () =>
+      new Promise((resolve) => {
+        late = resolve;
+      }),
+    {
+      ms: 50,
+      step: "eth_chainId",
+      setTimer: (fn) => {
+        timers.push(fn);
+        return timers.length;
+      },
+      clearTimer: () => {},
+    },
+  );
+  timers[0]();
+  await assert.rejects(pending, (error) => {
+    assert.equal(error.step, "eth_chainId");
+    assert.equal(error.code, "step-timeout");
+    assert.match(error.message, /No transaction was sent/);
+    return true;
+  });
+  late("too-late");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+});
 
 test("published contract file matches the pinned sha256", async () => {
   assert.equal(await sha256Hex(code), CONTRACT_SHA256);

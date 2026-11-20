@@ -15,6 +15,7 @@ import {
   judgeDeployObservation,
   pollUntil,
   sha256Hex,
+  withTimeout,
 } from "@/lib/studionet-deploy.mjs";
 
 type EthereumProvider = {
@@ -49,20 +50,35 @@ function injectedProvider() {
   return (globalThis as { ethereum?: EthereumProvider }).ethereum;
 }
 
+function boundedMs(fallback: number) {
+  if (typeof window === "undefined") return fallback;
+  const raw = Number(new URLSearchParams(window.location.search).get("stepMs"));
+  if (!Number.isFinite(raw) || raw < 200 || raw > 120000) return fallback;
+  return raw;
+}
+
 async function readObservation(hash: string) {
-  const response = await fetch("https://studio.genlayer.com/api", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "eth_getTransactionReceipt",
-      params: [hash],
-    }),
-  });
-  const payload = (await response.json()) as { result?: Record<string, unknown> | null; error?: { message?: string } };
-  if (payload.error) throw new Error(payload.error.message || "receipt lookup failed");
-  return payload.result ?? null;
+  try {
+    const response = await withTimeout(
+      () =>
+        fetch("https://studio.genlayer.com/api", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "eth_getTransactionReceipt",
+            params: [hash],
+          }),
+        }),
+      { ms: 8000, step: "eth_getTransactionReceipt" },
+    );
+    const payload = (await response.json()) as { result?: Record<string, unknown> | null; error?: { message?: string } };
+    if (payload.error) throw new Error(payload.error.message || "receipt lookup failed");
+    return payload.result ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function DeployStudio({ zh }: { zh: boolean }) {
@@ -81,47 +97,141 @@ export function DeployStudio({ zh }: { zh: boolean }) {
       return;
     }
     setBusy(true);
-    setView({ ...initialView, status: "checking" });
-    const attempt: { hash: string; adjustment: Adjustment | null } = { hash: "", adjustment: null };
+    const attempt: { hash: string; adjustment: Adjustment | null; onSend?: () => void } = {
+      hash: "",
+      adjustment: null,
+    };
+    const lines: string[] = [];
+    const show = (status: string, detail: string) => {
+      lines.push(`${status}: ${detail}`);
+      setView({
+        status,
+        detail: lines.join("\n\n"),
+        hash: attempt.hash,
+        address: "",
+        adjustment: attempt.adjustment,
+      });
+    };
+    const ms = boundedMs(0);
+    const limit = (fallback: number) => (ms > 0 ? ms : fallback);
     try {
-      const chainId = String(await ethereum.request({ method: "eth_chainId" }));
-      const accounts = (await ethereum.request({ method: "eth_requestAccounts" })) as string[];
+      show(
+        "eth_chainId",
+        zh
+          ? "正在等待注入钱包返回 eth_chainId。这一步不弹签名窗。超时后会恢复按钮，不会发送交易。"
+          : "Waiting for the injected wallet to return eth_chainId. This step has no signature prompt. The button returns if it times out. No transaction is sent.",
+      );
+      const chainId = String(
+        await withTimeout(() => ethereum.request({ method: "eth_chainId" }), {
+          ms: limit(8000),
+          step: "eth_chainId",
+        }),
+      );
+      show(
+        "eth_requestAccounts",
+        zh
+          ? `eth_chainId 已返回 ${chainId}。正在调用 eth_requestAccounts。若站点尚未连接，MetaMask 应弹出连接请求。超时后停止，不会发送交易。`
+          : `eth_chainId returned ${chainId}. Calling eth_requestAccounts. MetaMask should prompt if this site is not connected. A timeout stops here and sends nothing.`,
+      );
+      const accounts = (await withTimeout(() => ethereum.request({ method: "eth_requestAccounts" }), {
+        ms: limit(20000),
+        step: "eth_requestAccounts",
+      })) as string[];
       const account = accounts?.[0] ?? "";
       const gate = canSubmitDeploy({ chainId, account, existingHash: "" });
       if (!gate.ok) {
-        setView({
-          ...initialView,
-          status: "error",
-          detail:
-            gate.reason === "wrong-chain"
-              ? zh
-                ? `当前链是 ${chainId}。需要 Studionet ${STUDIO_CHAIN_ID}（0xf22f），RPC https://studio.genlayer.com/api。未发送交易。`
-                : `Wallet chain is ${chainId}. Studionet ${STUDIO_CHAIN_ID} (0xf22f) is required. No transaction was sent.`
-              : zh
-                ? "钱包没有返回账户。未发送交易。"
-                : "The wallet returned no account. No transaction was sent.",
-        });
+        show(
+          "error",
+          gate.reason === "wrong-chain"
+            ? zh
+              ? `当前链是 ${chainId}。需要 Studionet ${STUDIO_CHAIN_ID}（0xf22f），RPC https://studio.genlayer.com/api。未发送交易。`
+              : `Wallet chain is ${chainId}. Studionet ${STUDIO_CHAIN_ID} (0xf22f) is required. No transaction was sent.`
+            : zh
+              ? "eth_requestAccounts 没有返回账户。未发送交易。"
+              : "eth_requestAccounts returned no account. No transaction was sent.",
+        );
         return;
       }
-      const source = await fetch(`${basePath}/MilestoneWitness.py`);
+      show(
+        "load-contract",
+        zh
+          ? `账户 ${account}，链 ${chainId}。正在读取本站的 MilestoneWitness.py。未发送交易。`
+          : `Account ${account}, chain ${chainId}. Reading this site's MilestoneWitness.py. No transaction sent.`,
+      );
+      const source = await withTimeout(() => fetch(`${basePath}/MilestoneWitness.py`), {
+        ms: limit(15000),
+        step: "load-contract",
+      });
       if (!source.ok) throw new Error(`contract file HTTP ${source.status}`);
       const bytes = new Uint8Array(await source.arrayBuffer());
       const actual = await sha256Hex(bytes);
       if (actual !== CONTRACT_SHA256) {
         throw new Error(`contract hash ${actual} does not match ${CONTRACT_SHA256}`);
       }
-      const { createClient } = await import("genlayer-js");
-      const { studionet } = await import("genlayer-js/chains");
+      show(
+        "load-sdk",
+        zh ? "合约校验通过。正在加载 genlayer-js 1.1.8。未发送交易。" : "Contract hash matched. Loading genlayer-js 1.1.8. No transaction sent.",
+      );
+      const { createClient } = await withTimeout(() => import("genlayer-js"), {
+        ms: limit(20000),
+        step: "load-sdk",
+      });
+      const { studionet } = await withTimeout(() => import("genlayer-js/chains"), {
+        ms: limit(20000),
+        step: "load-sdk-chains",
+      });
+      let signing = false;
+      attempt.onSend = () => {
+        signing = true;
+        show(
+          "eth_sendTransaction",
+          zh
+            ? "genlayer-js 已组好交易并调用 eth_sendTransaction。现在才应该出现 MetaMask 签名。value 为 0。没有哈希之前不会再发一次。"
+            : "genlayer-js built the transaction and called eth_sendTransaction. MetaMask should ask for a signature now. Value is 0. Nothing is sent again before a hash exists.",
+        );
+      };
       const provider = createGuardedProvider(ethereum, attempt);
       const client = createClient({
         chain: studionet,
         account: account as `0x${string}`,
         provider,
       });
-      setView({ ...initialView, status: "awaiting-wallet" });
-      const hash = await client.deployContract({
+      show(
+        "sdk-deploy",
+        zh
+          ? "正在调用 deployContract。签名请求出现之前，SDK 会先读取 nonce 和 gas。尚未发送。"
+          : "Calling deployContract. Before a signature prompt, the SDK reads the nonce and gas. Nothing is sent yet.",
+      );
+      const deployPromise = client.deployContract({
         code: new TextDecoder().decode(bytes),
         args: [],
+      });
+      const hash = await new Promise<string>((resolve, reject) => {
+        const started = Date.now();
+        const timer = setInterval(() => {
+          const elapsed = Date.now() - started;
+          if (!signing && elapsed >= 20000) {
+            clearInterval(timer);
+            const error = new Error("timed out after 20000ms waiting for sdk-deploy before eth_sendTransaction. No transaction was sent.");
+            Object.assign(error, { code: "step-timeout", step: "sdk-deploy" });
+            reject(error);
+          } else if (signing && elapsed >= limit(120000)) {
+            clearInterval(timer);
+            const error = new Error("timed out after waiting for eth_sendTransaction. No hash was returned.");
+            Object.assign(error, { code: "step-timeout", step: "eth_sendTransaction" });
+            reject(error);
+          }
+        }, 200);
+        deployPromise.then(
+          (value: string) => {
+            clearInterval(timer);
+            resolve(String(value));
+          },
+          (error: unknown) => {
+            clearInterval(timer);
+            reject(error);
+          },
+        );
       });
       setView({
         status: "submitted",
@@ -166,13 +276,7 @@ export function DeployStudio({ zh }: { zh: boolean }) {
       });
     } catch (error) {
       const described = describeError(error);
-      setView({
-        status: "error",
-        detail: described.detail,
-        hash: attempt.hash,
-        address: "",
-        adjustment: attempt.adjustment,
-      });
+      show(described.step ? `error:${described.step}` : "error", described.detail);
     } finally {
       setBusy(false);
     }
