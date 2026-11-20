@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import test from "node:test";
 
 import { createClient } from "genlayer-js";
@@ -155,8 +156,38 @@ test("receipt timeout does not ask for another signature", async () => {
   assert.ok(reads > 1);
 });
 
+const recordedDeploy = createRequire(import.meta.url)("./fixtures/studionet-deploy-2026-11-20.json");
+
+test("the recorded Studionet receipt is success only from its execution fields", () => {
+  const judged = judgeDeployObservation({
+    evmReceipt: recordedDeploy.evmReceipt,
+    genlayer: recordedDeploy.studioTransaction,
+  });
+  assert.equal(judged.successful, true);
+  assert.equal(judged.address, "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865");
+  assert.equal(judged.execution, "FINISHED_WITH_RETURN");
+  const otherHash = structuredClone(recordedDeploy.studioTransaction);
+  otherHash.hash = "0x" + "ab".repeat(32);
+  otherHash.data.contract_address = "0x2222222222222222222222222222222222222222";
+  const moved = judgeDeployObservation({ genlayer: otherHash });
+  assert.equal(moved.successful, true);
+  assert.equal(moved.address, "0x2222222222222222222222222222222222222222");
+});
+
+test("the same receipt shape fails without a return result", () => {
+  const failed = structuredClone(recordedDeploy.studioTransaction);
+  failed.consensus_data.leader_receipt[0].execution_result = "ERROR";
+  const judged = judgeDeployObservation({ genlayer: failed });
+  assert.equal(judged.successful, false);
+  assert.equal(judged.address, null);
+  const rollback = structuredClone(recordedDeploy.studioTransaction);
+  rollback.consensus_data.leader_receipt[0].result = "AQ==";
+  const rolled = judgeDeployObservation({ genlayer: rollback });
+  assert.equal(rolled.successful, false);
+});
+
 test("an evm success without an execution result is not a deployed contract", () => {
-  const judged = judgeDeployObservation({ evmReceipt: { status: "0x1", contractAddress: CONSENSUS_ADDRESS } });
+  const judged = judgeDeployObservation({ evmReceipt: recordedDeploy.evmReceipt });
   assert.equal(judged.successful, false);
   assert.equal(judged.address, null);
   assert.equal(judged.reason, "execution-result-absent");

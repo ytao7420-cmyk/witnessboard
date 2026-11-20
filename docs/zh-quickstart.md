@@ -16,7 +16,7 @@ npm run dev
 
 默认是只读标本。琥珀色横幅会说明这些记录不是链上审查。标本模式不会连接钱包。
 
-要看链上操作，先在页眉确认进入链上模式，再粘贴你自己部署得到的合约地址。地址框是空的。没有部署回执之前，不要填任何地址。构建时如果设置了 `NEXT_PUBLIC_CONTRACT_ADDRESS`，构建会失败。
+Studionet 临时部署：https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet 。这是只读入口。写入仍要你自己的钱包签名，而且还没有做写入后的读回。构建时如果设置了 `NEXT_PUBLIC_CONTRACT_ADDRESS`，构建会失败。
 
 ## 跑合约测试
 

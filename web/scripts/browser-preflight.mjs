@@ -203,6 +203,14 @@ try {
   });
   const cdp = new Cdp(ws);
 
+  const recorded = await openPage(cdp, `http://127.0.0.1:${port}/witnessboard/prepare/`);
+  const recordedView = await waitForText(cdp, recorded.sessionId, "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865", 8000);
+  if (!recordedView.text.includes("会重置")) throw new Error("missing temporary-network label");
+  if (!recordedView.text.includes("写入后再读回还没有做")) throw new Error("missing unverified write label");
+  if (recordedView.calls.includes("eth_sendTransaction")) throw new Error("recorded page sent a transaction");
+  await cdp.send("Target.closeTarget", { targetId: recorded.targetId });
+  console.log("ok recorded-address-visible");
+
   await scenario(cdp, "hang-chain", "hang-chain", "waiting for eth_chainId", (value) => {
     if (!value.text.includes("timed out")) throw new Error(value.text.slice(0, 500));
     if (!value.text.includes("No transaction was sent")) throw new Error("missing no-send text");

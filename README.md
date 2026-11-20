@@ -81,7 +81,7 @@ The first direct-mode run downloads the GenVM archive (about 200 MB) into `~/.ca
 
 ## Deploy, after the owner confirms
 
-Nothing in this draft has been deployed or signed.
+One Studionet deployment is recorded in `web/src/lib/studionet-deploy.mjs`. Studionet can be reset. No write has been read back, and no Bradbury deployment exists.
 
 ```bash
 npm install -g genlayer
