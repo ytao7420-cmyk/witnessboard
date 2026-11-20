@@ -1,0 +1,33 @@
+# Captured 2026-11-20
+# Additional report. It does not replace the 2026-11-19 reports in this directory.
+# No transaction was broadcast. No deploy hash exists. No portal form was submitted.
+# Studionet is a temporary network. A passing local test is not an on-chain deployment.
+
+## Parent read-only observation, not treated as a root-cause exception
+# Studio log: schema returned, stderr empty, stdout empty.
+# Warning present: runner comment does not start with version, using default.
+# Browser console: SVG width/height warnings only. No deploy exception text.
+# MetaMask Activity: no pending, failed, or rejected item. Balance still 10 GEN.
+# The runner warning is not evidence of why Deploy produced no hash.
+
+## Measured genlayer-js 1.1.8 request, captured before broadcast
+# Command shape: createClient({ chain: studionet, account: 0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9, provider })
+# provider eth_sendTransaction threw captured-not-broadcast and did not forward the transaction.
+# Observed fields: value 0x0, gas 0x7a120 (500000), gasPrice 0x0, chainId 0xf22f,
+# to 0xb7278A61aa25c888815aFC32Ad3cC52fF24fE575, data selector 0x27241a99, data length 38660 bytes.
+# EIP-2028 intrinsic gas of that exact data: 637328. The node's flat estimate is lower.
+# sim_getFeeConfig on https://studio.genlayer.com/api returns -32601 Method not found.
+# No fee profile was written.
+
+## node --test src/lib/rules.test.mjs src/lib/sdk-rpc.test.mjs src/lib/studionet-deploy.test.mjs
+# result: 20 tests, 19 passed, 0 failed, 1 skipped
+# skipped: local GLSim is not running
+# covered: provider rejection with no invented hash, wrong chain, missing account,
+# second send blocked after a hash, receipt timeout, evm 0x1 without execution result
+# is not success, evm 0x0 is not success, genlayer FINISHED_WITH_RETURN needs a
+# distinct address, and the live Studionet payload capture above.
+
+## npm run build
+# Next.js 16.4.6 static export, then assert-pages-export.mjs
+# pages export ok: 7 routes, 185 files, base /witnessboard, address empty
+# web/out/MilestoneWitness.py sha256 6cc5e74eba8c843870b7e6300b89b946678d747220f40e4caffe0557dd3a7aa9

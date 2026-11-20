@@ -19,6 +19,7 @@
 
 # production
 /build
+/public/MilestoneWitness.py
 
 # misc
 .DS_Store
