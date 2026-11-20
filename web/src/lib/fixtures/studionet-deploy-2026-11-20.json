@@ -1,0 +1,44 @@
+{
+  "source": "eth_getTransactionByHash https://studio.genlayer.com/api",
+  "captured": "2026-11-20",
+  "studioTransaction": {
+    "hash": "0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544",
+    "status": "FINALIZED",
+    "result": 6,
+    "result_name": "MAJORITY_AGREE",
+    "sender": "0xcd1DabF73cC80EDeE8BA664c34A5d636b6e407f9",
+    "recipient": "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865",
+    "value": 0,
+    "type": 1,
+    "leader_only": false,
+    "execution_mode": "NORMAL",
+    "data": {
+      "calldata": "Bg==",
+      "contract_address": "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865"
+    },
+    "consensus_data": {
+      "leader_receipt": [
+        {
+          "result": "AAA=",
+          "execution_result": "SUCCESS",
+          "genvm_result": {
+            "stderr": "",
+            "stdout": "",
+            "raw_error": null,
+            "error_code": null,
+            "error_description": null
+          }
+        }
+      ]
+    }
+  },
+  "evmReceipt": {
+    "status": "0x1",
+    "contractAddress": null,
+    "from": "0xcd1DabF73cC80EDeE8BA664c34A5d636b6e407f9",
+    "to": "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865",
+    "transactionHash": "0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544",
+    "effectiveGasPrice": "0x0",
+    "gasUsed": "0x7a1200"
+  }
+}

@@ -63,7 +63,7 @@ https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0x你的合约&chain=
 
 那里的 `0x7466a13ff8ae365437dfb20e287e7f46897b453c` 只存在于这次本地进程，不能当作公开部署地址。交易号 `0x…0001` 起是模拟器顺序号，不是测试网交易。
 
-真测试网和 Studio 都还没有部署。没有部署哈希，没有 Portal 提交。
+Studionet 已有一次部署，交易 `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`，合约 `0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865`。该网络会重置。只读 `manifest` 返回 MilestoneWitness 1.0.0，`holds_funds` 为 false，`list_campaign_ids` 当时为空。写入后再读回还没有做。Bradbury 没有部署。没有由本仓库提交 Portal。
 
 ## Studionet 与 MetaMask
 

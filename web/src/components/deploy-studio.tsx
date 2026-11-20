@@ -14,6 +14,7 @@ import {
   describeError,
   judgeDeployObservation,
   pollUntil,
+  RECORDED_STUDIONET_DEPLOYMENT,
   sha256Hex,
   withTimeout,
 } from "@/lib/studionet-deploy.mjs";
@@ -57,25 +58,29 @@ function boundedMs(fallback: number) {
   return raw;
 }
 
+async function rpc(method: string, params: unknown[]) {
+  const response = await withTimeout(
+    () =>
+      fetch("https://studio.genlayer.com/api", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      }),
+    { ms: 8000, step: method },
+  );
+  const payload = (await response.json()) as { result?: Record<string, unknown> | null; error?: { message?: string } };
+  if (payload.error) throw new Error(payload.error.message || `${method} failed`);
+  return payload.result ?? null;
+}
+
 async function readObservation(hash: string) {
   try {
-    const response = await withTimeout(
-      () =>
-        fetch("https://studio.genlayer.com/api", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "eth_getTransactionReceipt",
-            params: [hash],
-          }),
-        }),
-      { ms: 8000, step: "eth_getTransactionReceipt" },
-    );
-    const payload = (await response.json()) as { result?: Record<string, unknown> | null; error?: { message?: string } };
-    if (payload.error) throw new Error(payload.error.message || "receipt lookup failed");
-    return payload.result ?? null;
+    const [evm, studio] = await Promise.all([
+      rpc("eth_getTransactionReceipt", [hash]).catch(() => null),
+      rpc("eth_getTransactionByHash", [hash]).catch(() => null),
+    ]);
+    if (!evm && !studio) return null;
+    return { evm, studio };
   } catch {
     return null;
   }
@@ -260,7 +265,17 @@ export function DeployStudio({ zh }: { zh: boolean }) {
         });
         return;
       }
-      const judgment = judgeDeployObservation({ evmReceipt: polled.value });
+      const observation = polled.value as { evm?: Record<string, unknown> | null; studio?: Record<string, unknown> | null };
+      const judgment = (
+        judgeDeployObservation as (input: { evmReceipt?: unknown; genlayer?: unknown }) => {
+          successful: boolean;
+          address: string | null;
+          reason: string;
+        }
+      )({
+        evmReceipt: observation.evm,
+        genlayer: observation.studio,
+      });
       setView({
         status: judgment.successful ? "deployed" : "incomplete",
         detail: judgment.successful
@@ -282,8 +297,31 @@ export function DeployStudio({ zh }: { zh: boolean }) {
     }
   }
 
+  const recorded = RECORDED_STUDIONET_DEPLOYMENT;
+  const deskHref = `${basePath}/desk/?address=${recorded.contractAddress}&chain=studionet`;
+
   return (
     <section className="space-y-4 rounded-xl border p-4">
+      <h2 className="font-display text-2xl">{zh ? "已记录的 Studionet 部署" : "Recorded Studionet deployment"}</h2>
+      <p className="text-sm leading-6">
+        {zh
+          ? "这是一次已经发生的部署，不是新的发送。Studionet 会重置，这个地址不是 Bradbury 或主网地址。只读检查过 manifest：名称 MilestoneWitness，version 1.0.0，holds_funds 为 false，当时 campaign_count 为 0。写入后再读回还没有做。"
+          : "This deployment already happened. It is not a new transaction. Studionet can be reset. This address is not a Bradbury or mainnet address. A read of manifest returned MilestoneWitness 1.0.0 with holds_funds false and campaign_count 0. A write followed by a read-back has not been done."}
+      </p>
+      <p className="break-all text-sm">
+        {zh ? "合约" : "Contract"}: {recorded.contractAddress}
+      </p>
+      <p className="break-all text-sm">
+        {zh ? "交易" : "Transaction"}:{" "}
+        <a className="underline" href={recorded.explorerTx}>
+          {recorded.txHash}
+        </a>
+      </p>
+      <p className="text-sm">
+        <a className="underline" href={deskHref}>
+          {zh ? "在链上模式只读打开台面" : "Open the desk in chain mode"}
+        </a>
+      </p>
       <h2 className="font-display text-2xl">{zh ? "用 MetaMask 部署到 Studionet" : "Deploy to Studionet with MetaMask"}</h2>
       <p className="text-sm leading-6">
         {zh

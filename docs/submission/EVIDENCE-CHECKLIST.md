@@ -9,11 +9,11 @@ Status on 19 November 2026. Nothing below has been submitted to the GenLayer por
 | Docs and tests | Required | Usage instructions | Present: `README.md`, `docs/zh-quickstart.md`, `docs/test-reports/` |
 | Description within 1000 words | Required | Overview within 1000 words | Drafts in this folder. Count them again before submission. |
 | Pitch within 180 characters | No | Required | Draft in `project.md`. Count before submission. |
-| Evidence URLs | Required | Required | Public repository and Pages site below are real. No chain deployment URL. |
+| Evidence URLs | Required | Required | Public repository, Pages site, and one temporary Studionet deployment below. |
 | Usable website | No | Required | GitHub Pages target: `https://ytao7420-cmyk.github.io/witnessboard/`. Local dev: `http://127.0.0.1:43123/witnessboard/`. Not a chain deployment. |
 | GitHub repository | Helpful as a URL | Required | Public: `https://github.com/ytao7420-cmyk/witnessboard`. This is not an Origin mirror. |
-| Deployed contract address | Not required by the written brief, but useful | Useful for a live demo | Missing on every public network. A local GLSim address exists only while `127.0.0.1:4217` is running and is recorded as local-only in `docs/test-reports/glsim-local.json`. |
-| Transaction hash | No | Would show a live review | Missing. Do not invent one. |
+| Deployed contract address | Not required by the written brief, but useful | Useful for a live demo | Studionet, temporary: `0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865`. Not Bradbury. |
+| Transaction hash | No | Would show a live review | Studionet deploy only: `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`. No review transaction. |
 | Screenshots of chain success | No | No | Do not create them. UI screenshots, if captured, are of the local draft only. |
 | Faucet, signature, portal post | No | No | Not done. Owner must confirm before any of these. |
 

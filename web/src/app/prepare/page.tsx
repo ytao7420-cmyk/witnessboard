@@ -11,8 +11,8 @@ export default function PreparePage() {
       <h1 className="font-display text-3xl">{zh ? "部署准备" : "Deployment preparation"}</h1>
       <p className="max-w-3xl text-sm leading-6">
         {zh
-          ? "这一页只列出所有者确认后自己执行的步骤。本草案没有签名、没有领取测试币、没有部署，也没有填入合约地址。"
-          : "These steps are for the owner to run after confirmation. This draft has not signed, claimed faucet funds, deployed, or filled in a contract address."}
+          ? "Studionet 上已有一次部署，网络会重置。下面列出地址和只读结果。写入后的读回还没有做。构建仍然拒绝预填 NEXT_PUBLIC_CONTRACT_ADDRESS。"
+          : "One Studionet deployment is recorded. That network can be reset. The address and the read-only result are below. A write followed by a read-back has not been done. The build still rejects NEXT_PUBLIC_CONTRACT_ADDRESS."}
       </p>
       <ul className="space-y-2 text-sm leading-6">
         <li>

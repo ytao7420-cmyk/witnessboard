@@ -1,0 +1,27 @@
+# Captured 2026-11-20. Read-only. No new transaction was sent.
+# This does not replace earlier reports.
+
+## Public receipt used for the fixture
+# eth_getTransactionByHash and eth_getTransactionReceipt
+# https://studio.genlayer.com/api
+# hash 0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544
+# Trimmed fields are in web/src/lib/fixtures/studionet-deploy-2026-11-20.json
+# status FINALIZED, result_name MAJORITY_AGREE, leader execution_result SUCCESS,
+# leader result AAA= (GenVM result code 0, return), data.contract_address
+# 0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865
+# eth_getTransactionReceipt status 0x1, contractAddress null, to the same contract address.
+# The public receipt field effectiveGasPrice is 0x0. The wallet UI gas price is a separate observation.
+
+## Read-only contract calls, genlayer-js 1.1.8, no account and no send
+# manifest: MilestoneWitness 1.0.0, holds_funds false, issues_refunds false, campaign_count 0
+# list_campaign_ids: []
+
+## Tests
+# node --test: 23 tests, 22 passed, 0 failed, 1 skipped (local GLSim not running)
+# The fixture is accepted. A different hash with the same execution shape is also accepted.
+# execution_result ERROR and result code rollback are not accepted.
+# The EVM receipt alone stays execution-result-absent.
+# npm run build passed.
+# node web/scripts/browser-preflight.mjs: recorded address visible without a send;
+# hanging chain and account requests time out; connected and disconnected wallets
+# show the simulated error and do not invent a hash.

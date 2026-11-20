@@ -163,6 +163,57 @@ export function createGuardedProvider(ethereum, state) {
   };
 }
 
+const GENVM_RESULT_CODES = ["return", "rollback", "contract_error", "error", "none", "no_leaders"];
+
+export const RECORDED_STUDIONET_DEPLOYMENT = {
+  temporary: true,
+  chainId: STUDIO_CHAIN_ID,
+  rpc: "https://studio.genlayer.com/api",
+  txHash: "0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544",
+  explorerTx: "https://explorer-studio.genlayer.com/tx/0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544",
+  contractAddress: "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865",
+  sender: "0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9",
+  readBack: {
+    manifestName: "MilestoneWitness",
+    version: "1.0.0",
+    holdsFunds: false,
+    issuesRefunds: false,
+    campaignCountAtRead: 0,
+  },
+};
+
+export function genvmResultCode(encoded) {
+  if (typeof encoded !== "string" || encoded.length === 0) return null;
+  let raw;
+  try {
+    raw = Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0));
+  } catch {
+    return null;
+  }
+  if (raw.length === 0) return null;
+  return GENVM_RESULT_CODES[raw[0]] ?? "unknown";
+}
+
+export function normalizeStudioTransaction(tx) {
+  const receipts = tx?.consensus_data?.leader_receipt;
+  const leader = Array.isArray(receipts) ? receipts[0] : null;
+  if (!leader) return null;
+  const code = genvmResultCode(leader.result);
+  const execution = leader.execution_result ?? "";
+  let txExecutionResultName = "";
+  if (execution === "SUCCESS" && code === "return") txExecutionResultName = "FINISHED_WITH_RETURN";
+  else if (execution || code) txExecutionResultName = "FINISHED_WITH_ERROR";
+  const status = typeof tx.status === "string" && !tx.status.startsWith("0x") ? tx.status : "";
+  return {
+    statusName: status,
+    txExecutionResultName,
+    contractAddress: tx.data?.contract_address ?? tx.recipient ?? null,
+    resultName: tx.result_name ?? "",
+    genvmResultCode: code,
+    executionResult: execution,
+  };
+}
+
 function pickDeployedAddress(tx) {
   const candidates = [
     tx?.contractAddress,
@@ -181,8 +232,10 @@ function pickDeployedAddress(tx) {
 }
 
 export function judgeDeployObservation({ evmReceipt = null, genlayer = null } = {}) {
-  const reading = genlayer ? interpretReceipt(genlayer) : null;
-  const address = pickDeployedAddress(genlayer);
+  const normalized = normalizeStudioTransaction(genlayer);
+  const source = normalized ?? genlayer;
+  const reading = source ? interpretReceipt(source) : null;
+  const address = pickDeployedAddress(source);
   if (reading?.successful && address) {
     return {
       successful: true,
