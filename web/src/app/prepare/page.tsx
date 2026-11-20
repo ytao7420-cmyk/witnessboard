@@ -11,8 +11,8 @@ export default function PreparePage() {
       <h1 className="font-display text-3xl">{zh ? "部署准备" : "Deployment preparation"}</h1>
       <p className="max-w-3xl text-sm leading-6">
         {zh
-          ? "Studionet 上已有一次部署，网络会重置。下面列出地址和只读结果。写入后的读回还没有做。构建仍然拒绝预填 NEXT_PUBLIC_CONTRACT_ADDRESS。"
-          : "One Studionet deployment is recorded. That network can be reset. The address and the read-only result are below. A write followed by a read-back has not been done. The build still rejects NEXT_PUBLIC_CONTRACT_ADDRESS."}
+          ? "Studionet 上已有一次会重置的临时部署。下面的台面可以匿名只读。写入要用户自己的钱包，和只读演示分开。已记录的流程使用本仓库 README 的一句话，不是真实筹款或业务成果。构建仍然拒绝预填 NEXT_PUBLIC_CONTRACT_ADDRESS。"
+          : "One temporary Studionet deployment is recorded, and that network can be reset. The desk below can be read without a wallet. Writes use the visitor's own wallet and stay separate from the read-only demo. The recorded flow quotes this repository's README. It is not fundraising or business traction. The build still rejects NEXT_PUBLIC_CONTRACT_ADDRESS."}
       </p>
       <ul className="space-y-2 text-sm leading-6">
         <li>

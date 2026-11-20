@@ -1,6 +1,8 @@
 # 浏览器最小主流程
 
-这些写入还没有发出。签名只在父级浏览器里做。value 必须是 0。钱包里单次费用预览不超过 0.001 GEN。节点 gas price 为 0 时，把 gas price 改成 1 Gwei；gas 500000 乘 1 Gwei 是 0.0005 GEN，这是预览上限，不是回执扣费。不要接受 Snap。出现交易哈希之后不要再点同一个方法。
+这四笔已经由发起人钱包签过，并且只读核对过。不要再发。归档在 `docs/test-reports/2026-11-20-main-flow-readback.txt`。当时每笔 value 为 0，钱包预览 0.0005 GEN 是上限，不是实际扣费。没有接受 Snap。
+
+下面保留当时的参数，方便对照，不是再做一遍的指令。
 
 页面：https://ytao7420-cmyk.github.io/witnessboard/actions/?address=0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865&chain=studionet
 

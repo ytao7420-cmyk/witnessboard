@@ -1,0 +1,91 @@
+{
+  "source": "genlayer-js 1.1.8 getTransaction and readContract against https://studio.genlayer.com/api",
+  "captured": "2026-11-20",
+  "note": "Trimmed public fields. No simulator config and no contract code. Wallet submission for each call was value 0, gas 500000, gasPrice 1 Gwei. 0.0005 GEN is that preview cap, not a measured charge. The evidence URL is this repository's own README at one commit. The campaign is a verification record, not fundraising or business traction.",
+  "contract": "0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865",
+  "sender": "0xcd1DabF73cC80EDeE8BA664c34A5d636b6e407f9",
+  "transactions": [
+    {
+      "method": "add_milestone",
+      "hash": "0x28e13ed0cfefba84e7b55ed23c0bfd8401cc8d901fa58dc028e1ade10735ad98",
+      "status": 7,
+      "statusName": "FINALIZED",
+      "result_name": "MAJORITY_AGREE",
+      "execution_result": "SUCCESS",
+      "result_status": "return",
+      "returnText": "m0001"
+    },
+    {
+      "method": "submit_evidence",
+      "hash": "0x572f47f49c43bc554a7ba8e96a3b62562a172a6c8cc58cddb74ce57dd13a3774",
+      "status": 7,
+      "statusName": "FINALIZED",
+      "result_name": "MAJORITY_AGREE",
+      "execution_result": "SUCCESS",
+      "result_status": "return",
+      "returnText": "e0001"
+    },
+    {
+      "method": "lock_milestone",
+      "hash": "0xbdc3256af5efa137c60ece1c8bed4d115acfd3bedc064cbb949022243404b87f",
+      "status": 7,
+      "statusName": "FINALIZED",
+      "result_name": "MAJORITY_AGREE",
+      "execution_result": "SUCCESS",
+      "result_status": "return",
+      "returnText": ""
+    },
+    {
+      "method": "request_review",
+      "hash": "0x9b565f16ba116b3cd7e945054fa060cdd2fc7187a11c6f44b8d76188118553d4",
+      "status": 7,
+      "statusName": "FINALIZED",
+      "result_name": "MAJORITY_AGREE",
+      "execution_result": "SUCCESS",
+      "result_status": "return",
+      "returnText": "r0001"
+    }
+  ],
+  "readBack": {
+    "campaign": {
+      "campaign_id": "c0001",
+      "title": "测试记录",
+      "summary": "用于验证见证台在Studionet上的创建与读回流程；不代表真实筹款或参与记录。",
+      "status": "open",
+      "organizer": "0xcd1DabF73cC80EDeE8BA664c34A5d636b6e407f9",
+      "milestone_ids": ["m0001"]
+    },
+    "milestone": {
+      "milestone_id": "m0001",
+      "campaign_id": "c0001",
+      "title": "README says the result does not move money",
+      "status": "reviewed",
+      "criteria": ["The page states that the stored result is a consensus reading of the supplied material and that it does not move money."],
+      "evidence_ids": ["e0001"],
+      "review_ids": ["r0001"],
+      "active_review_id": "r0001"
+    },
+    "evidence": {
+      "evidence_id": "e0001",
+      "source_kind": "public_https",
+      "locator": "https://raw.githubusercontent.com/ytao7420-cmyk/witnessboard/49ffbad6931125c565ca37709cb88c379b914771/README.md",
+      "excerpt": "The stored result is a consensus reading of the supplied material. It is not a finding of real-world fact, and it does not move money.",
+      "note": "",
+      "excerpt_sha256": "8394bc99c527d9ca7c6332202bf871d7a7034d2d542d517f0eef7675bec75154"
+    },
+    "review": {
+      "review_id": "r0001",
+      "milestone_id": "m0001",
+      "outcome": "supports",
+      "raw_outcome": "supports",
+      "confidence_bps": 9500,
+      "finding_status": ["met"],
+      "grounded": ["true"],
+      "fetch_classes": ["ok"],
+      "limits": ["not_a_real_world_finding", "page_body_not_retained", "no_payment_or_refund_effect", "single_evidence_item"],
+      "claim_scope": "Consensus reading of the supplied evidence against the milestone criteria. Not a finding of real-world fact, identity, legal compliance, payment entitlement, or refund.",
+      "superseded": false,
+      "evidence_ids": ["e0001"]
+    }
+  }
+}

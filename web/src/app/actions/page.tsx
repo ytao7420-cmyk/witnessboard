@@ -223,7 +223,7 @@ function ActionsPage() {
             get_milestone_view
           </Button>
           <Button type="button" variant="secondary" disabled={!isContractAddress(writeAddress)} onClick={() => void verifyRecordedWrite().catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
-            {zh ? "只读核验已有 create_campaign" : "Read-only check of the existing create_campaign"}
+            {zh ? "只读重读已记录的 create 哈希" : "Re-read the one recorded create hash"}
           </Button>
         </div>
         <p className="text-xs leading-5 text-muted-foreground md:col-span-2">
@@ -231,8 +231,8 @@ function ActionsPage() {
             {RECORDED_STUDIONET_DEPLOYMENT.createCampaignTxHash}
           </a>
           {zh
-            ? "。Explorer 为 FINALIZED、Consensus Accepted、GenVM SUCCESS、Result Code Return、返回 c0001。钱包提交参数是 value 0、gas 500000、gas price 1 Gwei，乘积 0.0005 GEN 是那次上限预览，不是回执里的实际扣费。effectiveGasPrice 仍可能是 0x0。"
-            : ". Explorer shows FINALIZED, Consensus Accepted, GenVM SUCCESS, Result Code Return, and c0001. The wallet submission was value 0, gas 500000, and 1 Gwei; 0.0005 GEN is that preview, not the charged fee. effectiveGasPrice can still be 0x0."}
+            ? "。这个按钮只重读这一笔已经发生的 create_campaign。它不证明别的地址、别的用户，也不代替后面的里程碑、证据和评审。0.0005 GEN 是那次钱包预览，不是实际扣费。"
+            : ". This button only re-reads that one past create_campaign. It does not prove another address, another user, or the later milestone, evidence, and review. 0.0005 GEN was the wallet preview, not the amount charged."}
         </p>
         {evidence ? <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs md:col-span-2">{evidence}</pre> : null}
         <label className="flex items-center gap-2 text-sm">

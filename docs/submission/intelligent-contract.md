@@ -1,6 +1,6 @@
 # Intelligent Contract submission draft
 
-Do not submit this until the owner reviews it. No portal form has been sent.
+Portal contribution `acb5c941-0d9c-4408-a9a8-4ee70a25dbb8` is still Pending. This file does not change that submission and does not ask for a second contract reward.
 
 Category: Intelligent Contracts. Stated range 0–500 points, two weekly slots. This draft does not ask to be scored as a Project as well. The reviewer decides whether the contract and the application are separate contributions.
 
@@ -24,4 +24,4 @@ Direct-mode tests cover the state machine, URL rejection, grounding, downgrade, 
 - Tests: `tests/direct/test_milestone_witness.py` and `docs/test-reports/pytest-direct.txt`.
 - Docs: `README.md`, `SECURITY.md`.
 - GenLayer references used: https://docs.genlayer.com/developers/intelligent-contracts/equivalence-principle , https://docs.genlayer.com/developers/intelligent-contracts/testing , https://docs.genlayer.com/developers/intelligent-contracts/first-contract .
-- No deployed contract address and no transaction hash. Do not invent them.
+- Temporary Studionet contract `0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865`. Deploy hash `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`. The later verification flow is archived in `docs/test-reports/2026-11-20-main-flow-readback.txt`. Studionet can reset. This is not a Bradbury deployment.
