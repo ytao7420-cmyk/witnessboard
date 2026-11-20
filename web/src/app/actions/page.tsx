@@ -1,13 +1,14 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRuntimeTarget } from "@/components/runtime";
-import { chainCatalog, chainFacts, idleTx, resumeFinalization, runWrite, type ChainKey, type TxState } from "@/lib/genlayer";
+import { chainCatalog, chainFacts, idleTx, loadCampaigns, readCampaignSummary, resumeFinalization, runWrite, type ChainKey, type TxState } from "@/lib/genlayer";
+import { RECORDED_STUDIONET_DEPLOYMENT } from "@/lib/studionet-deploy.mjs";
 import { isContractAddress, writesAllowed } from "@/lib/rules.mjs";
 
 const phases = ["simulating", "awaiting-signature", "submitted", "waiting-decision", "decided", "waiting-final", "final"] as const;
@@ -26,6 +27,12 @@ function ActionsPage() {
   const state = target;
   const zh = state.lang === "zh";
   const [tx, setTx] = useState<TxState>(idleTx);
+  const [addressDraft, setAddressDraft] = useState(target.contractAddress);
+  const [addressDirty, setAddressDirty] = useState(false);
+  const [evidence, setEvidence] = useState("");
+  useEffect(() => {
+    if (!addressDirty) setAddressDraft(target.contractAddress);
+  }, [addressDirty, target.contractAddress]);
   const [simulate, setSimulate] = useState(false);
   const [fields, setFields] = useState({
     title: "",
@@ -38,8 +45,8 @@ function ActionsPage() {
     excerpt: "",
     note: "",
   });
-  const allowed = writesAllowed(state.mode) && isContractAddress(state.contractAddress);
-  const writeAddress = state.contractAddress;
+  const writeAddress = addressDirty ? addressDraft : state.contractAddress || addressDraft;
+  const allowed = writesAllowed(state.mode) && isContractAddress(writeAddress);
   const facts = chainFacts(state.chainKey);
 
   function update(name: string, value: string) {
@@ -54,9 +61,23 @@ function ActionsPage() {
       functionName,
       args,
       simulateFirst: simulate,
-      endpoint: state.endpoint,
+      endpoint: state.chainKey === "studionet" ? "https://studio.genlayer.com/api" : state.endpoint,
+      variantName: state.stateVariant,
       onUpdate: setTx,
+      onReadBack: (value) => setEvidence(JSON.stringify(value, null, 2)),
     });
+  }
+
+  async function readList() {
+    if (!isContractAddress(writeAddress)) return;
+    const campaigns = await loadCampaigns(state.chainKey, writeAddress, state.stateVariant, state.chainKey === "studionet" ? "https://studio.genlayer.com/api" : state.endpoint);
+    setEvidence(JSON.stringify({ list_campaign_ids: campaigns.map((campaign) => campaign.id), campaigns }, null, 2));
+  }
+
+  async function readOne() {
+    if (!isContractAddress(writeAddress) || !fields.campaignId) return;
+    const campaign = await readCampaignSummary(state.chainKey, writeAddress, state.stateVariant, fields.campaignId, state.chainKey === "studionet" ? "https://studio.genlayer.com/api" : state.endpoint);
+    setEvidence(JSON.stringify({ get_campaign: campaign }, null, 2));
   }
 
   return (
@@ -115,10 +136,12 @@ function ActionsPage() {
         <label className="space-y-2 text-sm">
           <span>{zh ? "合约地址" : "Contract address"}</span>
             <Input
-            value={state.contractAddress}
-            readOnly={state.addressSource === "url" || state.addressSource === "build"}
-            placeholder={zh ? "部署完成后粘贴真实地址，这里不预填" : "Paste the deployed address. Nothing is prefilled."}
-            onChange={(event) => setState({ contractAddress: event.target.value.trim() })}
+            value={addressDirty ? addressDraft : state.contractAddress || addressDraft}
+            placeholder={zh ? "可粘贴或修改。URL 里的地址会先填在这里。" : "Paste or edit. A URL address is filled here first."}
+            onChange={(event) => {
+              setAddressDirty(true);
+              setAddressDraft(event.target.value.trim());
+            }}
           />
         </label>
         <label className="space-y-2 text-sm">
@@ -132,6 +155,20 @@ function ActionsPage() {
             <option value="latest-final">latest-final</option>
           </select>
         </label>
+        <p className="text-sm leading-6 text-muted-foreground md:col-span-2">
+          {zh
+            ? `Studionet 临时合约 ${RECORDED_STUDIONET_DEPLOYMENT.contractAddress}。写入 value 为 0，不安装 Snap。节点 gas price 为 0 时，钱包交易使用 1 Gwei，总额预览不超过 0.001 GEN 测试币。部署回执里的 effectiveGasPrice 0x0 是另一个字段。`
+            : `Temporary Studionet contract ${RECORDED_STUDIONET_DEPLOYMENT.contractAddress}. Writes use value 0 and do not install a Snap. When the node quotes gas price 0, the wallet transaction uses 1 Gwei, capped at 0.001 GEN. The deploy receipt effectiveGasPrice of 0x0 is a different field.`}
+        </p>
+        <div className="flex flex-wrap gap-2 md:col-span-2">
+          <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress)} onClick={() => void readList().catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
+            list_campaign_ids
+          </Button>
+          <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress) || !fields.campaignId} onClick={() => void readOne().catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
+            get_campaign
+          </Button>
+        </div>
+        {evidence ? <pre className="overflow-auto whitespace-pre-wrap rounded-lg bg-muted p-3 text-xs md:col-span-2">{evidence}</pre> : null}
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={simulate} onChange={(event) => setSimulate(event.target.checked)} />
           {zh ? "签名前尝试 simulateWriteContract（不是费用估算）" : "Try simulateWriteContract before signing (not a fee estimate)"}

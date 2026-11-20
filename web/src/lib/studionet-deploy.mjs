@@ -203,7 +203,11 @@ export function normalizeStudioTransaction(tx) {
   let txExecutionResultName = "";
   if (execution === "SUCCESS" && code === "return") txExecutionResultName = "FINISHED_WITH_RETURN";
   else if (execution || code) txExecutionResultName = "FINISHED_WITH_ERROR";
-  const status = typeof tx.status === "string" && !tx.status.startsWith("0x") ? tx.status : "";
+  const status = typeof tx.statusName === "string"
+    ? tx.statusName
+    : typeof tx.status === "string" && !tx.status.startsWith("0x")
+      ? tx.status
+      : "";
   return {
     statusName: status,
     txExecutionResultName,

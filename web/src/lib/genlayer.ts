@@ -2,6 +2,8 @@ import { localnet, studionet, testnetAsimov, testnetBradbury } from "genlayer-js
 import { TransactionHashVariant, TransactionStatus, type CalldataEncodable } from "genlayer-js/types";
 
 import { asList, asRecord, asText, interpretReceipt, isContractAddress } from "./rules.mjs";
+import { normalizeStudioTransaction, withTimeout } from "./studionet-deploy.mjs";
+import { createWriteProvider } from "./write-wallet.mjs";
 import type { CampaignView, EvidenceView, MilestoneView, ReviewView } from "./fixtures";
 
 export const chainCatalog = {
@@ -215,20 +217,72 @@ function provider(): EthereumProvider {
   return ethereum;
 }
 
-export async function connectWallet(key: ChainKey, endpoint?: string) {
-  const accounts = (await provider().request({ method: "eth_requestAccounts" })) as string[];
+export async function connectWallet(
+  key: ChainKey,
+  endpoint?: string,
+  hooks?: { onPreview?: (preview: Record<string, unknown>) => void; state?: { hash: string } },
+) {
+  const ethereum = provider();
+  const expected = chainFacts(key).id;
+  const chainId = String(
+    await withTimeout(() => ethereum.request({ method: "eth_chainId" }), { ms: 8000, step: "eth_chainId" }),
+  );
+  if (BigInt(chainId) !== BigInt(expected)) {
+    throw new Error(`wallet chain ${chainId} does not match ${key} (${expected}). No transaction was sent.`);
+  }
+  if (key === "studionet") {
+    const rpc = endpoint ? safeRpc(endpoint) : "https://studio.genlayer.com/api";
+    if (rpc !== "https://studio.genlayer.com/api") {
+      throw new Error("studionet writes must use https://studio.genlayer.com/api. No transaction was sent.");
+    }
+  }
+  const accounts = (await withTimeout(() => ethereum.request({ method: "eth_requestAccounts" }), {
+    ms: 20000,
+    step: "eth_requestAccounts",
+  })) as string[];
   const account = accounts[0];
   if (!account) throw new Error("no-account");
+  const consensus = (chainCatalog[key].chain as { consensusMainContract?: { address?: string } }).consensusMainContract?.address;
+  if (!consensus) throw new Error("missing consensus contract");
+  const state = hooks?.state ?? { hash: "" };
+  (state as { onSend?: (preview: Record<string, unknown>) => void }).onSend = hooks?.onPreview;
+  const guarded = createWriteProvider(ethereum, state, {
+    consensusAddress: consensus,
+    expectedChainId: expected,
+  });
   const { createClient } = await import("genlayer-js");
   const rpc = endpoint ? safeRpc(endpoint) : "";
   const client = createClient({
     chain: chainCatalog[key].chain,
     account: account as `0x${string}`,
-    provider: provider(),
+    provider: guarded as EthereumProvider,
     ...(rpc ? { endpoint: rpc } : {}),
   });
-  await client.connect(chainCatalog[key].connect);
-  return { account, client };
+  return { account, client, state };
+}
+
+let writeBusy = false;
+
+function judgeChainReceipt(tx: unknown) {
+  const normalized = normalizeStudioTransaction(tx);
+  return interpretReceipt(normalized ?? tx);
+}
+
+export async function readCampaignSummary(
+  key: ChainKey,
+  address: string,
+  variantName: "latest-final" | "latest-nonfinal",
+  campaignId: string,
+  endpoint?: string,
+) {
+  const campaign = asRecord(await read(key, address, variantName, "get_campaign", [campaignId], endpoint));
+  return {
+    id: asText(campaign.campaign_id) || campaignId,
+    title: asText(campaign.title),
+    summary: asText(campaign.summary),
+    status: asText(campaign.status),
+    organizer: asText(campaign.organizer),
+  };
 }
 
 export async function runWrite(options: {
@@ -238,11 +292,17 @@ export async function runWrite(options: {
   args: unknown[];
   simulateFirst: boolean;
   endpoint?: string;
+  variantName?: "latest-final" | "latest-nonfinal";
   onUpdate: (state: TxState) => void;
+  onReadBack?: (evidence: unknown) => void;
 }) {
   if (!isContractAddress(options.address)) throw new Error("missing-address");
+  if (writeBusy) throw new Error("a wallet request is already open. Not sending another transaction.");
+  writeBusy = true;
   const address = options.address as `0x${string}`;
   let hash = "";
+  let writePromise: Promise<unknown> | null = null;
+  let client: Awaited<ReturnType<typeof connectWallet>>["client"] | null = null;
   try {
     if (options.simulateFirst) {
       options.onUpdate({ phase: "simulating", hash: "", detail: options.functionName, successful: null });
@@ -261,50 +321,141 @@ export async function runWrite(options: {
         });
       }
     }
-    options.onUpdate({ phase: "awaiting-signature", hash: "", detail: options.functionName, successful: null });
-    const { client } = await connectWallet(options.key, options.endpoint);
+    options.onUpdate({ phase: "awaiting-signature", hash: "", detail: `${options.functionName}: eth_chainId`, successful: null });
+    const walletState = { hash: "" };
+    let account = "";
+    const connected = await connectWallet(options.key, options.endpoint, {
+      state: walletState,
+      onPreview: (preview) => {
+        options.onUpdate({
+          phase: "awaiting-signature",
+          hash: walletState.hash,
+          detail: `${options.functionName}: eth_sendTransaction from ${account}. value 0. gas ${String(preview.gas)}. gasPrice wei ${String(preview.gasPrice)}. max fee wei ${String(preview.maxFeeWei)}. cap 0.001 GEN. ${preview.replacedZeroQuote ? "quoted gas price was 0, using 1 Gwei." : ""}`,
+          successful: null,
+        });
+      },
+    });
+    client = connected.client;
+    account = connected.account;
+    writePromise = client.writeContract({
+      address,
+      functionName: options.functionName,
+      args: options.args as CalldataEncodable[],
+      value: 0n,
+    });
     hash = transactionId(
-      await client.writeContract({
-        address,
-        functionName: options.functionName,
-        args: options.args as CalldataEncodable[],
-        value: 0n,
+      await withTimeout(() => writePromise, { ms: 120000, step: "eth_sendTransaction" }).catch((error) => {
+        if (walletState.hash) return walletState.hash;
+        throw error;
       }),
     );
-    options.onUpdate({ phase: "submitted", hash, detail: options.functionName, successful: null });
-    options.onUpdate({ phase: "waiting-decision", hash, detail: options.functionName, successful: null });
-    const decision = await client.waitForTransactionReceipt({
-      hash: txHash(hash),
-      status: TransactionStatus.ACCEPTED,
-    });
-    const decided = interpretReceipt(decision);
-    options.onUpdate({
-      phase: decided.successful ? "decided" : decided.phase === "failed" ? "error" : "decided",
-      hash,
-      detail: `${decided.status} / ${decided.executionName || "execution-absent"}`,
-      successful: decided.successful,
-    });
-    if (decided.phase === "failed") return;
-    options.onUpdate({ phase: "waiting-final", hash, detail: options.functionName, successful: decided.successful });
-    const finalTx = await client.waitForTransactionReceipt({
-      hash: txHash(hash),
-      status: TransactionStatus.FINALIZED,
-    });
-    const finalReading = interpretReceipt(finalTx);
-    options.onUpdate({
-      phase: finalReading.successful ? "final" : "error",
-      hash,
-      detail: `${finalReading.status} / ${finalReading.executionName || "execution-absent"}`,
-      successful: finalReading.successful,
-    });
+    if (walletState.hash) hash = walletState.hash;
+    await finishWrite(client, options, hash);
+    writeBusy = false;
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!hash && writePromise && client) {
+      const pendingClient = client;
+      void writePromise.then((value) => {
+        const late = transactionId(value);
+        options.onUpdate({
+          phase: "submitted",
+          hash: late,
+          detail: `${options.functionName}: late hash kept. Not sending another transaction.`,
+          successful: null,
+        });
+        return finishWrite(pendingClient, options, late);
+      }).catch(() => undefined).finally(() => {
+        writeBusy = false;
+      });
+    } else {
+      writeBusy = false;
+    }
     options.onUpdate({
       phase: "error",
       hash,
-      detail: error instanceof Error ? error.message : String(error),
+      detail: message,
       successful: false,
     });
   }
+}
+
+async function finishWrite(
+  client: Awaited<ReturnType<typeof connectWallet>>["client"],
+  options: {
+    key: ChainKey;
+    address: string;
+    functionName: string;
+    args: unknown[];
+    endpoint?: string;
+    variantName?: "latest-final" | "latest-nonfinal";
+    onUpdate: (state: TxState) => void;
+    onReadBack?: (evidence: unknown) => void;
+  },
+  hash: string,
+) {
+  options.onUpdate({ phase: "waiting-decision", hash, detail: options.functionName, successful: null });
+  const decision = await client.waitForTransactionReceipt({
+    hash: txHash(hash),
+    status: TransactionStatus.ACCEPTED,
+  });
+  const decided = judgeChainReceipt(decision);
+  if (decided.phase === "failed" || decided.execution === "error") {
+    options.onUpdate({
+      phase: "error",
+      hash,
+      detail: `${decided.status} / ${decided.executionName || "execution-absent"}`,
+      successful: false,
+    });
+    return;
+  }
+  options.onUpdate({ phase: "waiting-final", hash, detail: `${decided.status} / ${decided.executionName || "execution-absent"}`, successful: null });
+  const finalTx = await client.waitForTransactionReceipt({
+    hash: txHash(hash),
+    status: TransactionStatus.FINALIZED,
+  });
+  const finalReading = judgeChainReceipt(finalTx);
+  if (!finalReading.successful) {
+    options.onUpdate({
+      phase: "error",
+      hash,
+      detail: `${finalReading.status} / ${finalReading.executionName || "execution-absent"}`,
+      successful: false,
+    });
+    return;
+  }
+  const variantName = options.variantName ?? "latest-nonfinal";
+  const campaigns = await loadCampaigns(options.key, options.address, variantName, options.endpoint);
+  if (options.functionName === "create_campaign") {
+    const title = String(options.args[0] ?? "");
+    const found = campaigns.find((campaign) => campaign.title === title);
+    if (!found) {
+      options.onReadBack?.({ campaigns, campaign: null });
+      options.onUpdate({
+        phase: "error",
+        hash,
+        detail: "FINISHED_WITH_RETURN, but list_campaign_ids/get_campaign does not show this title yet.",
+        successful: false,
+      });
+      return;
+    }
+    const campaign = await readCampaignSummary(options.key, options.address, variantName, found.id, options.endpoint);
+    options.onReadBack?.({ campaigns, campaign });
+    options.onUpdate({
+      phase: "final",
+      hash,
+      detail: `FINISHED_WITH_RETURN. read-back ${campaign.id} / ${campaign.title} / ${campaign.status}`,
+      successful: true,
+    });
+    return;
+  }
+  options.onReadBack?.({ campaigns, campaign: null });
+  options.onUpdate({
+    phase: "final",
+    hash,
+    detail: `FINISHED_WITH_RETURN. read-back campaigns ${campaigns.length}`,
+    successful: true,
+  });
 }
 
 export async function resumeFinalization(

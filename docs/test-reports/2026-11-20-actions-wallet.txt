@@ -1,0 +1,22 @@
+# Captured 2026-11-20. No transaction was broadcast and no Snap was accepted.
+# This does not replace earlier reports.
+
+## Cause of the Snap prompt
+# web/src/lib/genlayer.ts connectWallet called client.connect("studionet").
+# genlayer-js 1.1.8 connect() calls wallet_getSnaps and, when missing,
+# wallet_requestSnaps for npm:genlayer-wallet-plugin.
+# That runs before writeContract, so the UI stays on awaiting-signature with no hash
+# while MetaMask shows a Snap prompt instead of transaction details.
+# The successful deploy path never called connect().
+
+## Fix checked here
+# Writes use the injected provider and eth_sendTransaction only.
+# Snap methods are rejected in the provider wrapper.
+# A quoted gas price of 0 is replaced with 1 Gwei, and gas * price is capped at 0.001 GEN.
+# value stays 0.
+# node --test including write-wallet.test.mjs: 27 tests, 26 passed, 0 failed, 1 skipped.
+# npm run build passed.
+# Headless Chrome on the actions page with an injected provider:
+# calls were eth_chainId, eth_requestAccounts, eth_sendTransaction.
+# No Snap method was called. The captured transaction value was 0x0 and gasPrice was 0x3b9aca00 (1 Gwei).
+# The page showed simulated-wallet-error. No hash was invented.
