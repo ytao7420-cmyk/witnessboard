@@ -81,7 +81,7 @@ The first direct-mode run downloads the GenVM archive (about 200 MB) into `~/.ca
 
 ## Deploy, after the owner confirms
 
-One Studionet deployment is recorded in `web/src/lib/studionet-deploy.mjs`. Studionet can be reset. One later `create_campaign` returned `c0001` and was read back; the page initially misread status `7` as a failure. The actions page can re-check that hash without sending. No Bradbury deployment exists.
+One temporary Studionet deployment is recorded in `web/src/lib/studionet-deploy.mjs`. The network can be reset. The public desk reads without a wallet. Writes stay on the actions page and use the visitor's own wallet. One organizer wallet later completed create, add milestone, submit evidence, lock, and review. The evidence is a sentence from this repository's README, so the stored `supports` result is a verification record, not fundraising or business traction. The archive is `docs/test-reports/2026-11-20-main-flow-readback.txt`. Re-reading the old create hash does not prove another user or another address. No Bradbury deployment exists. Intelligent Contract contribution `acb5c941-0d9c-4408-a9a8-4ee70a25dbb8` is still Pending. This repository has not submitted the Project.
 
 ```bash
 npm install -g genlayer

@@ -1,0 +1,29 @@
+2026-11-20 Studionet main-flow read-back
+
+Read-only check through genlayer-js 1.1.8 against https://studio.genlayer.com/api. No new transaction was sent.
+
+Contract: 0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865
+Sender: 0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9
+Each wallet submission was value 0, gas 500000, gasPrice 1 Gwei. 0.0005 GEN is that preview, not the amount charged.
+
+All four receipts: status 7 / FINALIZED, result_name MAJORITY_AGREE, leader execution_result SUCCESS, result status return.
+
+add_milestone 0x28e13ed0cfefba84e7b55ed23c0bfd8401cc8d901fa58dc028e1ade10735ad98 returned m0001.
+https://explorer-studio.genlayer.com/tx/0x28e13ed0cfefba84e7b55ed23c0bfd8401cc8d901fa58dc028e1ade10735ad98
+
+submit_evidence 0x572f47f49c43bc554a7ba8e96a3b62562a172a6c8cc58cddb74ce57dd13a3774 returned e0001.
+https://explorer-studio.genlayer.com/tx/0x572f47f49c43bc554a7ba8e96a3b62562a172a6c8cc58cddb74ce57dd13a3774
+
+lock_milestone 0xbdc3256af5efa137c60ece1c8bed4d115acfd3bedc064cbb949022243404b87f returned no id.
+https://explorer-studio.genlayer.com/tx/0xbdc3256af5efa137c60ece1c8bed4d115acfd3bedc064cbb949022243404b87f
+
+request_review 0x9b565f16ba116b3cd7e945054fa060cdd2fc7187a11c6f44b8d76188118553d4 returned r0001.
+https://explorer-studio.genlayer.com/tx/0x9b565f16ba116b3cd7e945054fa060cdd2fc7187a11c6f44b8d76188118553d4
+
+latest-final reads:
+- c0001 remains open. Title 测试记录. Summary says this is a verification record and not a fundraising or participation record. milestone_ids [m0001].
+- m0001 title "README says the result does not move money", status reviewed, active_review_id r0001, evidence_ids [e0001].
+- e0001 public_https, note empty, excerpt and URL match the guide. The URL is this repo's README at commit 49ffbad.
+- r0001 outcome supports, raw_outcome supports, confidence 9500 bps, finding met, fetch ok, grounded true. claim_scope contains "Not a finding of real-world fact". limits include not_a_real_world_finding, page_body_not_retained, no_payment_or_refund_effect, single_evidence_item.
+
+This is one temporary Studionet walk-through. It is not business traction, and it is not a success result for a different address or a different user. Studionet can reset.

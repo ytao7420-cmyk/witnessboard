@@ -184,6 +184,22 @@ export const RECORDED_STUDIONET_DEPLOYMENT = {
   },
 };
 
+export const RECORDED_STUDIONET_FLOW = {
+  temporary: true,
+  notTraction: true,
+  note: "One organizer wallet walked create, milestone, evidence, lock, and review on the temporary Studionet contract. The evidence is a sentence from this repository's own README. It is not fundraising and not a result that applies to every visitor.",
+  campaignId: "c0001",
+  milestoneId: "m0001",
+  evidenceId: "e0001",
+  reviewId: "r0001",
+  transactions: [
+    { method: "add_milestone", hash: "0x28e13ed0cfefba84e7b55ed23c0bfd8401cc8d901fa58dc028e1ade10735ad98", returnText: "m0001" },
+    { method: "submit_evidence", hash: "0x572f47f49c43bc554a7ba8e96a3b62562a172a6c8cc58cddb74ce57dd13a3774", returnText: "e0001" },
+    { method: "lock_milestone", hash: "0xbdc3256af5efa137c60ece1c8bed4d115acfd3bedc064cbb949022243404b87f", returnText: "" },
+    { method: "request_review", hash: "0x9b565f16ba116b3cd7e945054fa060cdd2fc7187a11c6f44b8d76188118553d4", returnText: "r0001" },
+  ],
+};
+
 export function genvmResultCode(encoded) {
   if (encoded && typeof encoded === "object" && typeof encoded.status === "string") return encoded.status;
   if (typeof encoded !== "string" || encoded.length === 0) return null;

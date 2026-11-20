@@ -159,6 +159,18 @@ test("receipt timeout does not ask for another signature", async () => {
 
 const recordedDeploy = createRequire(import.meta.url)("./fixtures/studionet-deploy-2026-11-20.json");
 const recordedWrite = createRequire(import.meta.url)("./fixtures/studionet-create-2026-11-20.json");
+const recordedFlow = createRequire(import.meta.url)("./fixtures/studionet-main-flow-2026-11-20.json");
+
+test("the archived main flow matches the recorded hashes and is not a generic success flag", () => {
+  assert.equal(recordedFlow.transactions.length, 4);
+  assert.deepEqual(
+    recordedFlow.transactions.map((item) => item.returnText),
+    ["m0001", "e0001", "", "r0001"],
+  );
+  assert.equal(recordedFlow.readBack.review.outcome, "supports");
+  assert.equal(recordedFlow.readBack.review.confidence_bps, 9500);
+  assert.equal(recordedFlow.note.includes("not fundraising"), true);
+});
 
 test("the sdk create receipt maps status 7 and a decoded return to a return", () => {
   const normalized = normalizeStudioTransaction(recordedWrite.sdkReceipt);

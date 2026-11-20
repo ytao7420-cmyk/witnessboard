@@ -65,7 +65,16 @@ https://ytao7420-cmyk.github.io/witnessboard/desk/?address=0x你的合约&chain=
 
 Studionet 已有一次部署，交易 `0xe1e1b325d145270f2696fa349075d60417e918d55c954796bf5a870a711df544`，合约 `0xc4Ad3bd1A69BD91841e16a370f935B3C0ec16865`。该网络会重置。只读 `manifest` 返回 MilestoneWitness 1.0.0，`holds_funds` 为 false。部署当时 `list_campaign_ids` 为空。
 
-之后有一次真实 `create_campaign`，交易 [`0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768`](https://explorer-studio.genlayer.com/tx/0xa964822ba610072987b7cbb5ed14997aa22058b1a9ab98c01068cb9ce646f768)。Explorer 为 FINALIZED、Consensus Accepted、GenVM SUCCESS、Result Code Return，返回 `c0001`。`list_campaign_ids` 读回 `c0001`。`get_campaign` 读回 id `c0001`、title `测试记录`、summary `用于验证见证台在Studionet上的创建与读回流程；不代表真实筹款或参与记录。`、status `open`、organizer `0xcd1dabf73cc80edee8ba664c34a5d636b6e407f9`。这是验证记录，不是真实筹款。钱包提交参数是 value 0、gas 500000、gas price 1 Gwei；0.0005 GEN 是这次的上限预览，不是回执扣费。页面当时显示 `7 / execution-absent`，那是解析错误：SDK 把 FINALIZED 写成数字 7，并把返回值解码成对象，页面却要求字面量 `FINISHED_WITH_RETURN`。链上执行是成功的。操作页的“只读核验已有 create_campaign”只读取这个哈希和合约，不发送新交易。Bradbury 没有部署。没有由本仓库提交 Portal。
+之后同一发起人钱包在这个临时合约上走完创建、里程碑、证据、锁定和评审。四笔都是 FINALIZED、Consensus Accepted、GenVM SUCCESS、Result Code Return。钱包每次提交 value 0、gas 500000、gas price 1 Gwei；0.0005 GEN 是预览上限，不是实际扣费。证据 URL 是本仓库自己的 README，摘录是其中一句。`r0001` 的 outcome 是 `supports`，confidence 9500 bps，grounded 为 true，标准为 met。`limits` 含 `not_a_real_world_finding`、`no_payment_or_refund_effect` 和 `single_evidence_item`。这不是真实筹款或业务成果，也不是任意用户的通用结果。只读台面和钱包写入是分开的。明细在 `docs/test-reports/2026-11-20-main-flow-readback.txt`。
+
+| 方法 | 哈希 | 返回 |
+| --- | --- | --- |
+| add_milestone | [`0x28e13ed0…35ad98`](https://explorer-studio.genlayer.com/tx/0x28e13ed0cfefba84e7b55ed23c0bfd8401cc8d901fa58dc028e1ade10735ad98) | `m0001` |
+| submit_evidence | [`0x572f47f4…13a3774`](https://explorer-studio.genlayer.com/tx/0x572f47f49c43bc554a7ba8e96a3b62562a172a6c8cc58cddb74ce57dd13a3774) | `e0001` |
+| lock_milestone | [`0xbdc3256a…404b87f`](https://explorer-studio.genlayer.com/tx/0xbdc3256af5efa137c60ece1c8bed4d115acfd3bedc064cbb949022243404b87f) | 无 id，读回 `locked` |
+| request_review | [`0x9b565f16…18553d4`](https://explorer-studio.genlayer.com/tx/0x9b565f16ba116b3cd7e945054fa060cdd2fc7187a11c6f44b8d76188118553d4) | `r0001` |
+
+Bradbury 没有部署。Intelligent Contract 贡献 `acb5c941-0d9c-4408-a9a8-4ee70a25dbb8` 仍是 Pending。本仓库没有提交 Project，也不把两类奖励说成已经同时成立。
 
 ## Studionet 与 MetaMask
 

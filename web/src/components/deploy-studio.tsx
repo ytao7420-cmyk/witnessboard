@@ -15,6 +15,7 @@ import {
   judgeDeployObservation,
   pollUntil,
   RECORDED_STUDIONET_DEPLOYMENT,
+  RECORDED_STUDIONET_FLOW,
   sha256Hex,
   withTimeout,
 } from "@/lib/studionet-deploy.mjs";
@@ -305,8 +306,8 @@ export function DeployStudio({ zh }: { zh: boolean }) {
       <h2 className="font-display text-2xl">{zh ? "已记录的 Studionet 部署" : "Recorded Studionet deployment"}</h2>
       <p className="text-sm leading-6">
         {zh
-          ? "这是一次已经发生的部署，不是新的发送。Studionet 会重置，这个地址不是 Bradbury 或主网地址。只读检查过 manifest：名称 MilestoneWitness，version 1.0.0，holds_funds 为 false，部署当时 campaign_count 为 0。之后有一次 create_campaign，链上返回 c0001；当时页面把状态数字 7 显示成失败，那是解析错误，不是链上失败。可在操作页只读核验，不需要再发送。"
-          : "This deployment already happened. It is not a new transaction. Studionet can be reset. This address is not a Bradbury or mainnet address. A read of manifest returned MilestoneWitness 1.0.0 with holds_funds false and campaign_count 0. A write followed by a read-back has not been done."}
+          ? "这是一次已经发生的部署，不是新的发送。Studionet 会重置，这个地址不是 Bradbury 或主网地址。部署当时 campaign_count 为 0。后来同一个发起人钱包走过创建、里程碑、证据、锁定和评审。证据是本仓库 README 里的一句话。这不是真实筹款或业务成果，也不是任意访客的通用结果。匿名打开台面只读；写入仍要用户自己的钱包。"
+          : "This deployment already happened. It is not a new transaction. Studionet can be reset, and this address is not a Bradbury or mainnet address. campaign_count was 0 at deployment. One organizer wallet later created a campaign, milestone, evidence item, lock, and review. The evidence is one sentence from this repository's README. That is not fundraising or business traction, and it is not a result for every visitor. The public desk is read-only. Writes use the visitor's own wallet."}
       </p>
       <p className="break-all text-sm">
         {zh ? "合约" : "Contract"}: {recorded.contractAddress}
@@ -319,9 +320,20 @@ export function DeployStudio({ zh }: { zh: boolean }) {
       </p>
       <p className="text-sm">
         <a className="underline" href={deskHref}>
-          {zh ? "在链上模式只读打开台面" : "Open the desk in chain mode"}
+          {zh ? "匿名只读打开台面" : "Open the read-only desk"}
         </a>
       </p>
+      <ul className="space-y-1 break-all text-xs leading-5">
+        {RECORDED_STUDIONET_FLOW.transactions.map((item) => (
+          <li key={item.hash}>
+            {item.method}:{" "}
+            <a className="underline" href={`https://explorer-studio.genlayer.com/tx/${item.hash}`}>
+              {item.hash}
+            </a>
+            {item.returnText ? ` → ${item.returnText}` : zh ? " → 无返回 id" : " → no returned id"}
+          </li>
+        ))}
+      </ul>
       <h2 className="font-display text-2xl">{zh ? "用 MetaMask 部署到 Studionet" : "Deploy to Studionet with MetaMask"}</h2>
       <p className="text-sm leading-6">
         {zh
