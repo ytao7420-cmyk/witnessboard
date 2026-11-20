@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRuntimeTarget } from "@/components/runtime";
-import { chainCatalog, chainFacts, idleTx, loadCampaigns, readCampaignSummary, resumeFinalization, runWrite, type ChainKey, type TxState } from "@/lib/genlayer";
+import { chainCatalog, chainFacts, idleTx, loadCampaigns, readCampaignSummary, readChain, resumeFinalization, runWrite, type ChainKey, type TxState } from "@/lib/genlayer";
 import { RECORDED_STUDIONET_DEPLOYMENT } from "@/lib/studionet-deploy.mjs";
 import { interpretReceipt, isContractAddress, writesAllowed } from "@/lib/rules.mjs";
 
@@ -44,6 +44,8 @@ function ActionsPage() {
     locator: "",
     excerpt: "",
     note: "",
+    evidenceId: "",
+    reviewId: "",
   });
   const writeAddress = addressDirty ? addressDraft : state.contractAddress || addressDraft;
   const allowed = writesAllowed(state.mode) && isContractAddress(writeAddress);
@@ -106,6 +108,13 @@ function ActionsPage() {
         : `只读核验未达到 GenLayer return：${reading.status} / ${reading.executionName || "execution-absent"}`,
       successful: reading.successful,
     });
+  }
+
+  async function readNamed(fn: string, args: string[]) {
+    if (!isContractAddress(writeAddress) || args.some((item) => !item.trim())) return;
+    const endpoint = state.chainKey === "studionet" ? "https://studio.genlayer.com/api" : state.endpoint;
+    const value = await readChain(state.chainKey, writeAddress, state.stateVariant, fn, args, endpoint);
+    setEvidence(JSON.stringify({ [fn]: value }, null, 2));
   }
 
   async function readOne() {
@@ -201,6 +210,18 @@ function ActionsPage() {
           <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress) || !fields.campaignId} onClick={() => void readOne().catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
             get_campaign
           </Button>
+          <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress) || !fields.milestoneId} onClick={() => void readNamed("get_milestone", [fields.milestoneId]).catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
+            get_milestone
+          </Button>
+          <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress) || !fields.evidenceId} onClick={() => void readNamed("get_evidence", [fields.evidenceId]).catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
+            get_evidence
+          </Button>
+          <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress) || !fields.reviewId} onClick={() => void readNamed("get_review", [fields.reviewId]).catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
+            get_review
+          </Button>
+          <Button type="button" variant="outline" disabled={!isContractAddress(writeAddress) || !fields.milestoneId} onClick={() => void readNamed("get_milestone_view", [fields.milestoneId]).catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
+            get_milestone_view
+          </Button>
           <Button type="button" variant="secondary" disabled={!isContractAddress(writeAddress)} onClick={() => void verifyRecordedWrite().catch((error: unknown) => setEvidence(error instanceof Error ? error.message : String(error)))}>
             {zh ? "只读核验已有 create_campaign" : "Read-only check of the existing create_campaign"}
           </Button>
@@ -246,8 +267,15 @@ function ActionsPage() {
             create_campaign
           </Button>
         </div>
+        <p className="text-sm leading-6 text-muted-foreground">
+          {zh
+            ? "主流程是 add_milestone、submit_evidence、lock_milestone、request_review，每步等回执并读回返回的 id。不要为了覆盖再发 update_criteria、close_campaign、reopen_milestone 或第二条证据。已有哈希就不要重发。value 必须是 0，单次预览不超过 0.001 GEN。"
+            : "The main path is add_milestone, submit_evidence, lock_milestone, then request_review. Wait for each receipt and read back its returned id. Do not send update_criteria, close_campaign, reopen_milestone, or a second evidence item for coverage. If a hash exists, do not send again. Value must be 0, and each preview must stay within 0.001 GEN."}
+        </p>
         <Field label="campaign id" value={fields.campaignId} onChange={(value) => update("campaignId", value)} />
         <Field label="milestone id" value={fields.milestoneId} onChange={(value) => update("milestoneId", value)} />
+        <Field label="evidence id" value={fields.evidenceId} onChange={(value) => update("evidenceId", value)} />
+        <Field label="review id" value={fields.reviewId} onChange={(value) => update("reviewId", value)} />
         <Field label={zh ? "标准，一行一条" : "Criteria, one per line"} value={fields.criteria} onChange={(value) => update("criteria", value)} area />
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" disabled={!allowed} onClick={() => submit("add_milestone", [fields.campaignId, fields.title, fields.criteria])}>

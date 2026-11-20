@@ -3,6 +3,7 @@ import { TransactionHashVariant, TransactionStatus, type CalldataEncodable } fro
 
 import { asList, asRecord, asText, interpretReceipt, isContractAddress } from "./rules.mjs";
 import { normalizeStudioTransaction, withTimeout } from "./studionet-deploy.mjs";
+import { matchWriteReadBack } from "./write-readback.mjs";
 import { createWriteProvider } from "./write-wallet.mjs";
 import type { CampaignView, EvidenceView, MilestoneView, ReviewView } from "./fixtures";
 
@@ -74,6 +75,17 @@ function variant(name: "latest-final" | "latest-nonfinal") {
   return name === "latest-final"
     ? TransactionHashVariant.LATEST_FINAL
     : TransactionHashVariant.LATEST_NONFINAL;
+}
+
+export async function readChain(
+  key: ChainKey,
+  address: string,
+  variantName: "latest-final" | "latest-nonfinal",
+  fn: string,
+  args: unknown[] = [],
+  endpoint?: string,
+) {
+  return read(key, address, variantName, fn, args, endpoint);
 }
 
 async function read(
@@ -354,6 +366,16 @@ export async function runWrite(options: {
     writeBusy = false;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (hash && /timed out/i.test(message)) {
+      writeBusy = false;
+      options.onUpdate({
+        phase: "waiting-final",
+        hash,
+        detail: `${options.functionName}: ${message} Hash kept. Do not send this call again. Resume finalization, then read the record.`,
+        successful: null,
+      });
+      return;
+    }
     if (!hash && writePromise && client) {
       const pendingClient = client;
       void writePromise.then((value) => {
@@ -398,6 +420,8 @@ async function finishWrite(
   const decision = await client.waitForTransactionReceipt({
     hash: txHash(hash),
     status: TransactionStatus.ACCEPTED,
+    interval: 4000,
+    retries: 45,
   });
   const decided = judgeChainReceipt(decision);
   if (decided.phase === "failed" || decided.execution === "error") {
@@ -413,6 +437,8 @@ async function finishWrite(
   const finalTx = await client.waitForTransactionReceipt({
     hash: txHash(hash),
     status: TransactionStatus.FINALIZED,
+    interval: 4000,
+    retries: 90,
   });
   const finalReading = judgeChainReceipt(finalTx);
   if (!finalReading.successful) {
@@ -426,35 +452,20 @@ async function finishWrite(
   }
   const variantName = options.variantName ?? "latest-nonfinal";
   const campaigns = await loadCampaigns(options.key, options.address, variantName, options.endpoint);
-  if (options.functionName === "create_campaign") {
-    const title = String(options.args[0] ?? "");
-    const found = campaigns.find((campaign) => campaign.title === title);
-    if (!found) {
-      options.onReadBack?.({ campaigns, campaign: null });
-      options.onUpdate({
-        phase: "error",
-        hash,
-        detail: "FINISHED_WITH_RETURN, but list_campaign_ids/get_campaign does not show this title yet.",
-        successful: false,
-      });
-      return;
-    }
-    const campaign = await readCampaignSummary(options.key, options.address, variantName, found.id, options.endpoint);
-    options.onReadBack?.({ campaigns, campaign });
-    options.onUpdate({
-      phase: "final",
-      hash,
-      detail: `FINISHED_WITH_RETURN. read-back ${campaign.id} / ${campaign.title} / ${campaign.status}`,
-      successful: true,
-    });
-    return;
-  }
-  options.onReadBack?.({ campaigns, campaign: null });
+  const matched = matchWriteReadBack({
+    functionName: options.functionName,
+    args: options.args,
+    returnText: finalReading.returnText,
+    campaigns,
+  });
+  options.onReadBack?.({ returnText: finalReading.returnText, campaigns, ...matched.record, ok: matched.ok });
   options.onUpdate({
-    phase: "final",
+    phase: matched.ok ? "final" : "error",
     hash,
-    detail: `FINISHED_WITH_RETURN. read-back campaigns ${campaigns.length}`,
-    successful: true,
+    detail: matched.ok
+      ? `FINISHED_WITH_RETURN. ${matched.reason}`
+      : `FINISHED_WITH_RETURN, but ${matched.reason}`,
+    successful: matched.ok,
   });
 }
 
@@ -474,6 +485,8 @@ export async function resumeFinalization(
   const finalTx = await client.waitForTransactionReceipt({
     hash: txHash(hash),
     status: TransactionStatus.FINALIZED,
+    interval: 4000,
+    retries: 90,
   });
   const reading = interpretReceipt(finalTx);
   onUpdate({

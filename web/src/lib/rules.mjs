@@ -117,7 +117,12 @@ export function interpretReceipt(tx) {
   else if (status === "ACCEPTED" || status === "READY_TO_FINALIZE") phase = "decided";
   else if (status) phase = "pending";
   const successful = (phase === "decided" || phase === "final") && execution === "return";
-  return { phase, execution, successful, status, executionName, returnText: derived.text };
+  const carried = typeof tx?.returnText === "string" ? tx.returnText.replace(/^"|"$/g, "") : "";
+  return { phase, execution, successful, status, executionName, returnText: derived.text || carried };
+}
+
+export function genvmReturnText(value) {
+  return returnText(value);
 }
 
 export function asText(value) {
